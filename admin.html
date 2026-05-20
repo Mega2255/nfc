@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Navy Federal – Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --navy:#002147; --navy-mid:#003366; --teal:#00857C; --teal-light:#00A896; --gold:#C9A84C; }
+    * { margin:0;padding:0;box-sizing:border-box; }
+    body { font-family:'DM Sans',sans-serif; background:#0a0f18; color:rgba(255,255,255,.9); min-height:100vh; overflow-x:hidden; }
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--teal);border-radius:99px}
+
+    /* PRELOADER */
+    #preloader{position:fixed;inset:0;z-index:9999;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;transition:opacity .7s ease,visibility .7s ease}
+    #preloader.hide{opacity:0;visibility:hidden;pointer-events:none}
+    .loader-anchor{width:60px;height:60px;animation:anchorSpin 2s cubic-bezier(.6,0,.4,1) infinite}
+    @keyframes anchorSpin{0%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-8px) rotate(-10deg)}75%{transform:translateY(4px) rotate(10deg)}100%{transform:translateY(0) rotate(0deg)}}
+    .progress-wrap{width:220px;height:2px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden}
+    .progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:99px;animation:load 2.2s cubic-bezier(.4,0,.2,1) forwards}
+    @keyframes load{0%{width:0%}80%{width:90%}100%{width:100%}}
+    #site{opacity:0;transition:opacity .5s ease .1s}
+    #site.show{opacity:1}
+
+    /* SIDEBAR */
+    .sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:#111827;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;z-index:200;transition:transform .3s}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:199}
+    .sidebar-overlay.show{display:block}
+    .nav-item{display:flex;align-items:center;gap:.8rem;padding:.7rem 1.25rem;border-radius:10px;margin:.1rem .75rem;cursor:pointer;font-size:.855rem;font-weight:500;color:rgba(255,255,255,.45);transition:all .2s;text-decoration:none;position:relative}
+    .nav-item:hover{background:rgba(0,133,124,.1);color:var(--teal-light)}
+    .nav-item.active{background:linear-gradient(135deg,rgba(0,133,124,.2),rgba(0,168,150,.1));color:var(--teal-light)}
+    .nav-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--teal);border-radius:0 3px 3px 0;margin-left:-.75rem}
+
+    /* TOPBAR */
+    .topbar{height:64px;background:#111827;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;position:sticky;top:0;z-index:100}
+    .main-content{margin-left:240px;min-height:100vh}
+
+    /* CARDS */
+    .card{background:#161f2e;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:1.5rem}
+    .stat-card{background:linear-gradient(135deg,#161f2e,#0d1520);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:1.5rem;position:relative;overflow:hidden}
+
+    /* TABLE */
+    .data-table{width:100%;border-collapse:separate;border-spacing:0}
+    .data-table th{font-size:.72rem;font-weight:600;letter-spacing:.08em;color:rgba(255,255,255,.35);padding:.75rem 1rem;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);white-space:nowrap}
+    .data-table td{padding:.85rem 1rem;font-size:.855rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+    .data-table tr:last-child td{border-bottom:none}
+    .data-table tr:hover td{background:rgba(255,255,255,.02)}
+
+    /* STATUS */
+    .badge{padding:.25rem .7rem;border-radius:99px;font-size:.72rem;font-weight:600;white-space:nowrap}
+    .badge-pending{background:rgba(201,168,76,.15);color:var(--gold)}
+    .badge-approved{background:rgba(0,133,124,.15);color:var(--teal-light)}
+    .badge-declined{background:rgba(220,53,69,.15);color:#ff6b7a}
+    .badge-active{background:rgba(74,222,128,.12);color:#4ade80}
+    .badge-blocked{background:rgba(220,53,69,.15);color:#ff6b7a}
+
+    /* BUTTONS */
+    .btn-xs{padding:.3rem .7rem;border-radius:7px;font-size:.75rem;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s}
+    .btn-approve{background:rgba(0,133,124,.2);color:var(--teal-light);border:1px solid rgba(0,133,124,.3)}
+    .btn-approve:hover{background:rgba(0,133,124,.35)}
+    .btn-decline{background:rgba(220,53,69,.15);color:#ff6b7a;border:1px solid rgba(220,53,69,.25)}
+    .btn-decline:hover{background:rgba(220,53,69,.3)}
+    .btn-block{background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.25)}
+    .btn-block:hover{background:rgba(201,168,76,.25)}
+    .btn-primary{background:linear-gradient(135deg,var(--teal),var(--teal-light));color:white;font-weight:600;padding:.75rem 1.5rem;border-radius:10px;border:none;cursor:pointer;font-size:.9rem;font-family:'DM Sans',sans-serif;transition:all .2s}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,133,124,.4)}
+    .btn-view{background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1)}
+    .btn-view:hover{background:rgba(255,255,255,.12);color:white}
+
+    /* INPUT */
+    .input-field{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.7rem 1rem;color:white;font-size:.875rem;font-family:'DM Sans',sans-serif;transition:border-color .2s}
+    .input-field:focus{outline:none;border-color:var(--teal)}
+    .input-field::placeholder{color:rgba(255,255,255,.3)}
+    select.input-field option{background:#161f2e}
+
+    /* MODAL */
+    .modal{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;padding:1rem}
+    .modal.open{display:flex}
+    .modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px)}
+    .modal-box{position:relative;z-index:1;background:#161f2e;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2rem;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+    .modal-box-lg{max-width:580px}
+
+    /* TOAST */
+    .toast{position:fixed;top:1.5rem;right:1.5rem;z-index:9999;padding:.85rem 1.5rem;border-radius:12px;font-size:.88rem;font-weight:500;transform:translateX(120%);transition:transform .4s cubic-bezier(.4,0,.2,1);max-width:320px}
+    .toast.show{transform:translateX(0)}
+    .toast.success{background:linear-gradient(135deg,#00857C,#00A896);color:white}
+    .toast.error{background:linear-gradient(135deg,#c0392b,#e74c3c);color:white}
+    .toast.info{background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:white;border:1px solid rgba(201,168,76,.3)}
+
+    .page-section{display:none}.page-section.active{display:block}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .fade-in{animation:fadeInUp .35s ease forwards}
+
+    .tab-filter{padding:.4rem .9rem;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-family:'DM Sans',sans-serif;transition:all .2s}
+    .tab-filter.active,.tab-filter:hover{background:rgba(0,133,124,.15);border-color:rgba(0,133,124,.4);color:var(--teal-light)}
+
+    /* USER TX HISTORY MODAL */
+    .modal-box-xl{max-width:760px}
+    .user-tx-row{display:flex;align-items:center;gap:.75rem;padding:.8rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .user-tx-row:last-child{border-bottom:none}
+    .date-edit-input{background:rgba(255,255,255,.07);border:1px solid rgba(0,133,124,.4);border-radius:7px;padding:.3rem .6rem;color:white;font-size:.8rem;font-family:'DM Sans',sans-serif;width:160px}
+    .date-edit-input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px rgba(0,133,124,.15)}
+    .btn-edit-date{background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.25);padding:.28rem .65rem;border-radius:7px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+    .btn-edit-date:hover{background:rgba(201,168,76,.25)}
+    .btn-save-date{background:rgba(0,133,124,.2);color:var(--teal-light);border:1px solid rgba(0,133,124,.35);padding:.28rem .65rem;border-radius:7px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+    .btn-save-date:hover{background:rgba(0,133,124,.4)}
+    .btn-cancel-date{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);padding:.28rem .55rem;border-radius:7px;font-size:.72rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+    .btn-cancel-date:hover{background:rgba(255,255,255,.12);color:white}
+
+    /* SEARCH */
+    .search-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.55rem 1rem .55rem 2.5rem;color:white;font-size:.85rem;font-family:'DM Sans',sans-serif;width:220px}
+    .search-input:focus{outline:none;border-color:var(--teal)}
+    .search-input::placeholder{color:rgba(255,255,255,.3)}
+
+    /* CRYPTO GRID */
+    .crypto-addr-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.25rem;transition:border-color .2s}
+    .crypto-addr-card:hover{border-color:rgba(0,133,124,.3)}
+
+    /* BANK DETAIL ROW */
+    .bank-detail-row{display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,.06)}
+    .bank-detail-row:last-child{border-bottom:none}
+
+    /* TRANSFER DETAIL */
+    .detail-row{display:flex;justify-content:space-between;align-items:flex-start;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+    .detail-row:last-child{border-bottom:none}
+
+    /* RESPONSIVE */
+    @media(max-width:768px){
+      .main-content{margin-left:0}
+      .sidebar{transform:translateX(-100%)}
+      .sidebar.open{transform:translateX(0)}
+      .stats-grid{grid-template-columns:repeat(2,1fr) !important}
+      .topbar-actions .topbar-date{display:none}
+      .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+      .hide-mobile{display:none !important}
+      .fund-grid{grid-template-columns:1fr !important}
+      .page-padding{padding:1rem !important}
+    }
+    @keyframes spin360{to{transform:rotate(360deg)}}
+
+    /* CREATE USER SUCCESS MODAL */
+    .cu-success-overlay{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)}
+    .cu-success-overlay.open{display:flex}
+    .cu-success-box{background:#161f2e;border:1px solid rgba(0,133,124,.3);border-radius:22px;padding:2.25rem;width:100%;max-width:420px;text-align:center}
+    .cu-check-ring{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal-light));display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;box-shadow:0 8px 30px rgba(0,133,124,.45)}
+    .cu-acct-chip{background:rgba(0,133,124,.12);border:1px solid rgba(0,133,124,.3);border-radius:10px;padding:.65rem 1.25rem;display:inline-block;font-family:'Space Grotesk',monospace;font-size:1.05rem;font-weight:700;color:var(--teal-light);letter-spacing:.12em;margin:.75rem 0}
+
+    @media(max-width:480px){
+      .stats-grid{grid-template-columns:1fr !important}
+      .modal-box{padding:1.25rem}
+      .filter-bar{flex-wrap:wrap}
+      .search-input{width:100%;min-width:0}
+    }
+  </style>
+</head>
+<body>
+
+<!-- PRELOADER -->
+<div id="preloader">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem">
+    <svg class="loader-anchor" viewBox="0 0 60 60" fill="none">
+      <circle cx="30" cy="12" r="7" stroke="#C9A84C" stroke-width="2.5"/>
+      <line x1="30" y1="19" x2="30" y2="52" stroke="#00857C" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M16 38 Q30 52 44 38" stroke="#00857C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <circle cx="16" cy="38" r="3" fill="#C9A84C"/><circle cx="44" cy="38" r="3" fill="#C9A84C"/>
+    </svg>
+    <div style="font-family:'Playfair Display',serif;color:white;font-size:1.1rem;letter-spacing:.15em">Admin Panel</div>
+    <div style="font-size:.65rem;letter-spacing:.3em;color:#C9A84C">NAVY FEDERAL</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem">
+    <div class="progress-wrap"><div class="progress-bar"></div></div>
+    <div style="font-size:.7rem;letter-spacing:.2em;color:rgba(255,255,255,.4)">LOADING ADMIN CONSOLE</div>
+  </div>
+</div>
+
+<div id="site">
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div style="padding:1.25rem;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:.75rem">
+      <svg width="32" height="32" viewBox="0 0 60 60" fill="none">
+        <circle cx="30" cy="12" r="7" stroke="#C9A84C" stroke-width="2.5"/>
+        <line x1="30" y1="19" x2="30" y2="52" stroke="#00A896" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M16 38 Q30 52 44 38" stroke="#00A896" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <circle cx="16" cy="38" r="3" fill="#C9A84C"/><circle cx="44" cy="38" r="3" fill="#C9A84C"/>
+      </svg>
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:.85rem;color:white;letter-spacing:.04em">Admin Console</div>
+        <div style="font-size:.56rem;letter-spacing:.15em;color:var(--gold);font-weight:500">NAVY FEDERAL</div>
+      </div>
+    </div>
+    <nav style="flex:1;overflow-y:auto;padding:.75rem 0">
+      <a class="nav-item active" onclick="showPage('overview')" id="nav-overview">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overview
+      </a>
+      <a class="nav-item" onclick="showPage('transactions')" id="nav-transactions">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Transactions
+        <span style="background:var(--gold);color:var(--navy);font-size:.6rem;font-weight:700;padding:.15rem .4rem;border-radius:99px;margin-left:auto" id="pending-count">0</span>
+      </a>
+      <a class="nav-item" onclick="showPage('users')" id="nav-users">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Users
+      </a>
+      <a class="nav-item" onclick="showPage('fund')" id="nav-fund">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Fund Account
+      </a>
+      <a class="nav-item" onclick="showPage('bank')" id="nav-bank">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Bank Details
+      </a>
+      <a class="nav-item" onclick="showPage('wallets')" id="nav-wallets">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Crypto Wallets
+      </a>
+      <a class="nav-item" onclick="showPage('cards')" id="nav-cards">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Cards
+        <span style="background:rgba(201,168,76,.15);color:var(--gold);font-size:.6rem;font-weight:700;padding:.15rem .4rem;border-radius:99px;margin-left:auto" id="card-req-count">0</span>
+      </a>
+      <a class="nav-item" onclick="showPage('loans')" id="nav-loans">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Loans
+        <span style="background:rgba(201,168,76,.15);color:var(--gold);font-size:.6rem;font-weight:700;padding:.15rem .4rem;border-radius:99px;margin-left:auto" id="loan-req-count">0</span>
+      </a>
+      <a class="nav-item" onclick="showPage('createuser')" id="nav-createuser" style="margin-top:.5rem;border-top:1px solid rgba(255,255,255,.06);padding-top:.85rem">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>Create User
+      </a>
+    </nav>
+    <div style="padding:1rem;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#a07830);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:.85rem">A</div>
+        <div style="flex:1">
+          <div style="font-size:.82rem;font-weight:600;color:white">Administrator</div>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.4)">Super Admin</div>
+        </div>
+        <button onclick="authSignOut()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4)">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:1rem">
+        <button onclick="toggleSidebar()" id="menu-btn" style="background:none;border:none;cursor:pointer;color:white;display:none">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.4)">Administration</div>
+          <div style="font-size:.98rem;font-weight:600" id="topbar-title">Overview</div>
+        </div>
+      </div>
+      <div class="topbar-actions" style="display:flex;align-items:center;gap:1rem">
+        <div style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);color:var(--gold);font-size:.72rem;font-weight:600;padding:.3rem .85rem;border-radius:99px">⚡ ADMIN</div>
+        <div class="topbar-date" style="font-size:.75rem;color:rgba(255,255,255,.35);background:rgba(255,255,255,.05);padding:.4rem .85rem;border-radius:8px" id="topbar-date"></div>
+      </div>
+    </header>
+
+    <div style="padding:1.5rem" class="page-padding" id="page-content">
+
+      <!-- ══════════ OVERVIEW ══════════ -->
+      <div class="page-section active" id="page-overview">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem" class="stats-grid" id="stats-grid">
+          <div class="stat-card fade-in">
+            <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:rgba(0,133,124,.08)"></div>
+            <p style="font-size:.72rem;font-weight:600;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:.5rem">TOTAL USERS</p>
+            <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:white" id="stat-users">0</div>
+            <div style="font-size:.75rem;color:var(--teal-light);margin-top:.25rem">Registered members</div>
+          </div>
+          <div class="stat-card fade-in" style="animation-delay:.1s">
+            <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:rgba(201,168,76,.06)"></div>
+            <p style="font-size:.72rem;font-weight:600;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:.5rem">PENDING ACTIONS</p>
+            <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--gold)" id="stat-pending">0</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-top:.25rem">Require review</div>
+          </div>
+          <div class="stat-card fade-in" style="animation-delay:.2s">
+            <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:rgba(74,222,128,.06)"></div>
+            <p style="font-size:.72rem;font-weight:600;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:.5rem">TOTAL DEPOSITED</p>
+            <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:#4ade80" id="stat-deposited">$0</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-top:.25rem">Approved deposits</div>
+          </div>
+          <div class="stat-card fade-in" style="animation-delay:.3s">
+            <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:rgba(255,107,122,.06)"></div>
+            <p style="font-size:.72rem;font-weight:600;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:.5rem">TOTAL TRANSFERRED</p>
+            <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:#ff6b7a" id="stat-transferred">$0</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-top:.25rem">Approved transfers</div>
+          </div>
+        </div>
+
+        <div class="card fade-in">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem">
+            <h3 style="font-weight:700;font-size:1rem">Recent Transactions</h3>
+            <button onclick="showPage('transactions')" style="background:none;border:none;cursor:pointer;color:var(--teal-light);font-size:.82rem;font-weight:600;font-family:'DM Sans',sans-serif">View all →</button>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table" id="recent-tx-table">
+              <thead><tr>
+                <th>USER</th><th>TYPE</th><th>AMOUNT</th><th>STATUS</th><th>DATE</th><th>ACTIONS</th>
+              </tr></thead>
+
+              <tbody id="recent-tx-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ TRANSACTIONS ══════════ -->
+      <div class="page-section" id="page-transactions">
+        <div style="margin-bottom:1.25rem">
+          <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-bottom:.25rem">All Transactions</h2>
+          <p style="color:rgba(255,255,255,.4);font-size:.855rem">Approve or decline pending transfers and deposits</p>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem;align-items:center" class="filter-bar">
+          <div style="position:relative;flex:1;min-width:180px;max-width:280px">
+            <svg width="14" height="14" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" viewBox="0 0 24 24" style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" style="width:100%" id="tx-search" placeholder="Search transactions..." oninput="filterAdminTx()"/>
+          </div>
+          <button class="tab-filter active" onclick="filterAdminTx('all',this)" data-filter="all">All</button>
+          <button class="tab-filter" onclick="filterAdminTx('pending',this)" data-filter="pending">Pending</button>
+          <button class="tab-filter" onclick="filterAdminTx('transfer',this)" data-filter="transfer">Transfers</button>
+          <button class="tab-filter" onclick="filterAdminTx('deposit',this)" data-filter="deposit">Deposits</button>
+          <button class="tab-filter" onclick="filterAdminTx('approved',this)" data-filter="approved">Approved</button>
+          <button class="tab-filter" onclick="filterAdminTx('declined',this)" data-filter="declined">Declined</button>
+        </div>
+        <div class="card table-scroll">
+          <table class="data-table">
+            <thead><tr>
+              <th>USER</th><th>TYPE</th><th>DETAILS</th><th>AMOUNT</th><th>STATUS</th><th>DATE</th><th>ACTIONS</th>
+            </tr></thead>
+            <tbody id="all-tx-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════ USERS ══════════ -->
+      <div class="page-section" id="page-users">
+        <div style="margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+          <div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-bottom:.25rem">User Management</h2>
+            <p style="color:rgba(255,255,255,.4);font-size:.855rem">Block, unblock, fund, or edit user accounts</p>
+          </div>
+          <div style="position:relative">
+            <svg width="14" height="14" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" viewBox="0 0 24 24" style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" id="user-search" placeholder="Search users..." oninput="filterUsers()"/>
+          </div>
+        </div>
+        <div class="card table-scroll">
+          <table class="data-table">
+            <thead><tr>
+              <th>NAME</th><th>EMAIL</th><th class="hide-mobile">ACCOUNT</th><th>BALANCE</th><th>STATUS</th><th class="hide-mobile">JOINED</th><th>ACTIONS</th>
+            </tr></thead>
+            <tbody id="users-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════ FUND ACCOUNT ══════════ -->
+      <div class="page-section" id="page-fund">
+        <div style="max-width:520px">
+          <div style="margin-bottom:1.75rem">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-bottom:.25rem">Fund User Account</h2>
+            <p style="color:rgba(255,255,255,.4);font-size:.855rem">Manually credit or debit funds to any user account</p>
+          </div>
+          <div class="card">
+            <div style="margin-bottom:1.25rem">
+              <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Select User</label>
+              <select id="fund-user" class="input-field" onchange="loadFundUserInfo()">
+                <option value="">— Select a user —</option>
+              </select>
+            </div>
+            <div id="fund-user-info" style="display:none;background:rgba(0,133,124,.06);border:1px solid rgba(0,133,124,.2);border-radius:12px;padding:1rem;margin-bottom:1.25rem">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div style="font-weight:600;font-size:.95rem;color:white" id="fi-name">-</div>
+                  <div style="font-size:.75rem;color:rgba(255,255,255,.45);margin-top:.15rem" id="fi-email">-</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.15rem">Current Balance</div>
+                  <div style="font-weight:700;color:var(--teal-light);font-size:1.1rem" id="fi-balance">$0.00</div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-bottom:1.25rem">
+              <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Operation</label>
+              <div style="display:flex;gap:.5rem">
+                <button onclick="setFundOp('credit',this)" class="tab-filter active" style="flex:1;text-align:center" id="op-credit">+ Credit</button>
+                <button onclick="setFundOp('debit',this)" class="tab-filter" style="flex:1;text-align:center" id="op-debit">− Debit</button>
+              </div>
+            </div>
+            <div style="margin-bottom:1.25rem">
+              <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Amount (USD)</label>
+              <div style="position:relative">
+                <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-weight:600">$</span>
+                <input id="fund-amount" type="number" class="input-field" style="padding-left:2rem" placeholder="0.00" min="1"/>
+              </div>
+            </div>
+            <div style="margin-bottom:1.5rem">
+              <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Note (optional)</label>
+              <input id="fund-note" class="input-field" placeholder="e.g. Account correction, Bonus credit"/>
+            </div>
+            <button onclick="submitFund()" class="btn-primary" style="width:100%">Apply Transaction</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ BANK DEPOSIT DETAILS ══════════ -->
+      <div class="page-section" id="page-bank">
+        <div style="max-width:640px">
+          <div style="margin-bottom:1.75rem">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-bottom:.25rem">Bank Deposit Details</h2>
+            <p style="color:rgba(255,255,255,.4);font-size:.855rem">These details are shown to users when they choose Bank Transfer deposit</p>
+          </div>
+          <div class="card">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem" class="fund-grid">
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">🏦 Bank Name</label>
+                <input id="bd-bankName" class="input-field" placeholder="e.g. Navy Federal Credit Union"/>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">👤 Account Name</label>
+                <input id="bd-accountName" class="input-field" placeholder="e.g. Navy Federal Deposits"/>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">#️⃣ Account Number</label>
+                <input id="bd-accountNumber" class="input-field" placeholder="Account number"/>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">🔢 Routing Number</label>
+                <input id="bd-routingNumber" class="input-field" placeholder="9-digit routing number"/>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">🌐 SWIFT / BIC Code</label>
+                <input id="bd-swiftCode" class="input-field" placeholder="e.g. NFCUUS33"/>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">🔐 IBAN</label>
+                <input id="bd-iban" class="input-field" placeholder="e.g. GB29 NWBK 6016 1331 9268 19"/>
+              </div>
+              <div style="grid-column:1/-1">
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">📍 Bank Address</label>
+                <input id="bd-bankAddress" class="input-field" placeholder="e.g. 820 Follin Lane, Vienna, VA 22180"/>
+              </div>
+              <div style="grid-column:1/-1">
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">📋 Reference / Note</label>
+                <input id="bd-reference" class="input-field" placeholder="e.g. Include your account number as reference"/>
+              </div>
+            </div>
+
+            <!-- Preview -->
+            <div style="background:rgba(0,133,124,.06);border:1px solid rgba(0,133,124,.2);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem" id="bd-preview">
+              <div style="font-size:.72rem;font-weight:600;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:.75rem">PREVIEW (USERS WILL SEE THIS)</div>
+              <div id="bd-preview-rows"><p style="font-size:.82rem;color:rgba(255,255,255,.3)">Fill in details above to preview</p></div>
+            </div>
+
+            <button onclick="saveBankDetails()" class="btn-primary" style="width:100%">Save Bank Details</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ WALLETS ══════════ -->
+      <div class="page-section" id="page-wallets">
+        <div style="margin-bottom:1.75rem">
+          <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-bottom:.25rem">Crypto Wallet Addresses</h2>
+          <p style="color:rgba(255,255,255,.4);font-size:.855rem">These addresses are shown to users when they want to make a deposit</p>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem" id="wallet-grid"></div>
+      </div>
+
+      <!-- ══════════ CARDS ══════════ -->
+      <div class="page-section" id="page-cards">
+        <div style="margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem">
+          <div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-bottom:.25rem">Card Management</h2>
+            <p style="color:rgba(255,255,255,.4);font-size:.855rem">Configure card catalog and approve / decline card applications</p>
+          </div>
+          <button onclick="openCardCatalogModal()" class="btn-primary" style="padding:.6rem 1.2rem;font-size:.875rem">+ Add Card Type</button>
+        </div>
+        <div style="margin-bottom:2rem">
+          <h3 style="font-size:.72rem;font-weight:600;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:1rem">CARD CATALOG</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem" id="card-catalog-grid">
+            <div style="color:rgba(255,255,255,.3);font-size:.85rem;padding:.5rem">No cards configured yet.</div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap">
+            <h3 style="font-size:.72rem;font-weight:600;letter-spacing:.08em;color:rgba(255,255,255,.4)">CARD APPLICATIONS</h3>
+            <button class="tab-filter active" onclick="filterCardApps('all',this)">All</button>
+            <button class="tab-filter" onclick="filterCardApps('pending',this)">Pending</button>
+            <button class="tab-filter" onclick="filterCardApps('approved',this)">Approved</button>
+            <button class="tab-filter" onclick="filterCardApps('declined',this)">Declined</button>
+          </div>
+          <div class="card table-scroll">
+            <table class="data-table">
+              <thead><tr>
+                <th>USER</th><th>CARD TYPE</th><th>PRICE</th><th>BALANCE</th><th>STATUS</th><th>DATE</th><th>ACTIONS</th>
+              </tr></thead>
+              <tbody id="card-apps-body"><tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.3);padding:2rem">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ LOANS ══════════ -->
+      <div class="page-section" id="page-loans">
+        <div style="margin-bottom:1.5rem">
+          <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-bottom:.25rem">Loan Applications</h2>
+          <p style="color:rgba(255,255,255,.4);font-size:.855rem">Approve or decline loan requests. Approving a loan credits the user's balance automatically.</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap" class="filter-bar">
+          <button class="tab-filter active" onclick="filterLoanApps('all',this)">All</button>
+          <button class="tab-filter" onclick="filterLoanApps('pending',this)">Pending</button>
+          <button class="tab-filter" onclick="filterLoanApps('approved',this)">Approved</button>
+          <button class="tab-filter" onclick="filterLoanApps('declined',this)">Declined</button>
+        </div>
+        <div class="card table-scroll">
+          <table class="data-table">
+            <thead><tr>
+              <th>USER</th><th>LOAN TYPE</th><th>AMOUNT</th><th>TERM</th><th>PURPOSE</th><th>INCOME</th><th>STATUS</th><th>DATE</th><th>ACTIONS</th>
+            </tr></thead>
+            <tbody id="loan-apps-body"><tr><td colspan="9" style="text-align:center;color:rgba(255,255,255,.3);padding:2rem">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ════════════════ CREATE USER ════════════════ -->
+      <div class="page-section" id="page-createuser">
+        <div style="margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem">
+          <div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-bottom:.25rem">Create User Account</h2>
+            <p style="color:rgba(255,255,255,.4);font-size:.855rem">Create a new user account. The user is automatically verified and can log in immediately — no email confirmation required.</p>
+          </div>
+          <div style="background:rgba(0,133,124,.1);border:1px solid rgba(0,133,124,.25);border-radius:10px;padding:.65rem 1rem;display:flex;align-items:center;gap:.5rem">
+            <svg width="14" height="14" fill="none" stroke="#00A896" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span style="font-size:.75rem;font-weight:600;color:var(--teal-light)">Auto-Verified · No Email Required</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem" class="fund-grid">
+          <!-- LEFT: Personal + Address -->
+          <div class="card">
+            <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.35);margin-bottom:1.25rem">PERSONAL INFORMATION</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem" class="fund-grid">
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">First Name <span style="color:#ff6b7a">*</span></label>
+                <input id="cu-firstName" class="input-field" placeholder="John"/>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Last Name <span style="color:#ff6b7a">*</span></label>
+                <input id="cu-lastName" class="input-field" placeholder="Doe"/>
+              </div>
+            </div>
+            <div style="margin-bottom:1rem">
+              <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Date of Birth <span style="color:#ff6b7a">*</span></label>
+              <input id="cu-dob" type="date" class="input-field" style="color-scheme:dark"/>
+            </div>
+            <div style="margin-bottom:1rem">
+              <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Gender</label>
+              <select id="cu-gender" class="input-field">
+                <option value="">Select gender</option>
+                <option>Male</option><option>Female</option><option>Non-binary</option><option>Prefer not to say</option>
+              </select>
+            </div>
+            <div style="margin-bottom:1rem">
+              <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Account Type <span style="color:#ff6b7a">*</span></label>
+              <select id="cu-accountType" class="input-field">
+                <option value="">Select account type</option>
+                <option>Savings Account</option>
+                <option>Checking Account</option>
+                <option>Money Market Account</option>
+                <option>Certificate of Deposit (CD)</option>
+              </select>
+            </div>
+            <div style="margin-bottom:1.25rem">
+              <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Phone Number</label>
+              <input id="cu-phone" class="input-field" placeholder="+1 (555) 000-0000"/>
+            </div>
+            <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.35);margin-bottom:1rem">ADDRESS</div>
+            <div style="margin-bottom:1rem">
+              <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Street Address</label>
+              <input id="cu-address" class="input-field" placeholder="123 Main Street"/>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem" class="fund-grid">
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">City</label>
+                <input id="cu-city" class="input-field" placeholder="Washington"/>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">State / Region</label>
+                <input id="cu-state" class="input-field" placeholder="DC"/>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" class="fund-grid">
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">ZIP / Postal Code</label>
+                <input id="cu-zip" class="input-field" placeholder="20001" maxlength="10"/>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Country</label>
+                <select id="cu-country" class="input-field">
+                  <option value="">Select</option>
+                  <option>Afghanistan</option><option>Albania</option><option>Algeria</option><option>Argentina</option><option>Armenia</option><option>Australia</option><option>Austria</option><option>Azerbaijan</option><option>Bahamas</option><option>Bangladesh</option><option>Belgium</option><option>Brazil</option><option>Canada</option><option>Chile</option><option>China</option><option>Colombia</option><option>Croatia</option><option>Czech Republic</option><option>Denmark</option><option>Egypt</option><option>Ethiopia</option><option>Finland</option><option>France</option><option>Germany</option><option>Ghana</option><option>Greece</option><option>Hungary</option><option>India</option><option>Indonesia</option><option>Iran</option><option>Iraq</option><option>Ireland</option><option>Israel</option><option>Italy</option><option>Jamaica</option><option>Japan</option><option>Jordan</option><option>Kenya</option><option>Malaysia</option><option>Mexico</option><option>Morocco</option><option>Netherlands</option><option>New Zealand</option><option>Nigeria</option><option>Norway</option><option>Pakistan</option><option>Philippines</option><option>Poland</option><option>Portugal</option><option>Romania</option><option>Russia</option><option>Saudi Arabia</option><option>Senegal</option><option>Singapore</option><option>South Africa</option><option>South Korea</option><option>Spain</option><option>Sri Lanka</option><option>Sweden</option><option>Switzerland</option><option>Tanzania</option><option>Thailand</option><option>Turkey</option><option>Uganda</option><option>Ukraine</option><option>United Arab Emirates</option><option>United Kingdom</option><option selected>United States</option><option>Uruguay</option><option>Venezuela</option><option>Vietnam</option><option>Zambia</option><option>Zimbabwe</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Credentials + Security + Balance + Submit -->
+          <div>
+            <div class="card" style="margin-bottom:1.25rem">
+              <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.35);margin-bottom:1.25rem">LOGIN CREDENTIALS</div>
+              <div style="margin-bottom:1rem">
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Email Address <span style="color:#ff6b7a">*</span></label>
+                <input id="cu-email" type="email" class="input-field" placeholder="john.doe@example.com"/>
+              </div>
+              <div style="margin-bottom:1rem">
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Username <span style="color:#ff6b7a">*</span></label>
+                <input id="cu-username" class="input-field" placeholder="johndoe2024"/>
+              </div>
+              <div style="margin-bottom:1rem">
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Password <span style="color:#ff6b7a">*</span></label>
+                <div style="position:relative">
+                  <input id="cu-password" type="password" class="input-field" style="padding-right:2.5rem" placeholder="Minimum 8 characters"/>
+                  <button type="button" onclick="toggleCuPwd('cu-password',this)" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);padding:.2rem">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div style="margin-bottom:1rem">
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Confirm Password <span style="color:#ff6b7a">*</span></label>
+                <div style="position:relative">
+                  <input id="cu-confirmPassword" type="password" class="input-field" style="padding-right:2.5rem" placeholder="Re-enter password"/>
+                  <button type="button" onclick="toggleCuPwd('cu-confirmPassword',this)" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);padding:.2rem">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Transaction PIN <span style="color:#ff6b7a">*</span> <span style="font-weight:400;color:rgba(255,255,255,.28)">(4–6 digits)</span></label>
+                <div style="position:relative">
+                  <input id="cu-transactionPin" type="password" class="input-field" style="padding-right:2.5rem" placeholder="e.g. 1234" maxlength="6" inputmode="numeric"/>
+                  <button type="button" onclick="toggleCuPwd('cu-transactionPin',this)" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);padding:.2rem">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-bottom:1.25rem">
+              <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.35);margin-bottom:1.25rem">SECURITY</div>
+              <div style="margin-bottom:1rem">
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Security Question</label>
+                <select id="cu-secQuestion" class="input-field">
+                  <option value="">Select a question</option>
+                  <option>What was the name of your first pet?</option>
+                  <option>What city were you born in?</option>
+                  <option>What is your mother's maiden name?</option>
+                  <option>What was the name of your elementary school?</option>
+                  <option>What was your childhood nickname?</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Security Answer</label>
+                <input id="cu-secAnswer" class="input-field" placeholder="Your answer"/>
+              </div>
+            </div>
+
+            <div class="card" style="margin-bottom:1.25rem">
+              <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.35);margin-bottom:1rem">INITIAL BALANCE <span style="color:rgba(255,255,255,.25);font-weight:400">(Optional)</span></div>
+              <div style="position:relative">
+                <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-weight:600">$</span>
+                <input id="cu-initialBalance" type="number" class="input-field" style="padding-left:2rem" placeholder="0.00" min="0"/>
+              </div>
+              <p style="font-size:.72rem;color:rgba(255,255,255,.3);margin-top:.5rem">Starting balance for the new account.</p>
+            </div>
+
+            <button onclick="createUserAccount()" class="btn-primary" style="width:100%;padding:.9rem;font-size:.95rem" id="cu-submit-btn">
+              <span id="cu-btn-text">✦ Create Account</span>
+              <span id="cu-btn-spinner" style="display:none">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="animation:spin360 .8s linear infinite;display:inline-block;vertical-align:middle;margin-right:.4rem"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                Creating account…
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CREATE USER SUCCESS MODAL -->
+<div class="cu-success-overlay" id="cu-success-modal">
+  <div class="cu-success-box">
+    <div class="cu-check-ring">
+      <svg width="34" height="34" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h3 style="font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:white;margin-bottom:.4rem">Account Created!</h3>
+    <p style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:.25rem">The user can now log in immediately.</p>
+    <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-bottom:1rem" id="cu-success-email"></div>
+    <div class="cu-acct-chip" id="cu-success-acct">0000000000</div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem;margin-bottom:1.25rem;text-align:left" id="cu-success-details"></div>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="closeCuSuccessModal()" class="btn-xs btn-view" style="flex:1;padding:.7rem;font-size:.85rem">Close</button>
+      <button onclick="closeCuSuccessModal();showPage('users')" class="btn-primary" style="flex:2;padding:.7rem;font-size:.9rem">View Users →</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal" id="confirm-modal">
+  <div class="modal-overlay" onclick="closeModal()"></div>
+  <div class="modal-box">
+    <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:.75rem" id="modal-title">Confirm Action</h3>
+    <p style="color:rgba(255,255,255,.55);font-size:.875rem;line-height:1.6;margin-bottom:1.5rem" id="modal-desc"></p>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="closeModal()" class="btn-xs btn-block" style="flex:1;padding:.65rem;font-size:.85rem">Cancel</button>
+      <button id="modal-confirm-btn" class="btn-xs btn-approve" style="flex:2;padding:.65rem;font-size:.85rem">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSACTION DETAIL MODAL -->
+<div class="modal" id="tx-detail-modal">
+  <div class="modal-overlay" onclick="closeTxDetail()"></div>
+  <div class="modal-box modal-box-lg">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700">Transaction Details</h3>
+      <button onclick="closeTxDetail()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <div id="tx-detail-body"></div>
+    <div id="tx-detail-actions" style="margin-top:1.5rem;display:flex;gap:.75rem"></div>
+  </div>
+</div>
+
+<!-- USER EDIT MODAL -->
+<div class="modal" id="user-edit-modal">
+  <div class="modal-overlay" onclick="closeUserEdit()"></div>
+  <div class="modal-box modal-box-lg">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700">Edit User Profile</h3>
+      <button onclick="closeUserEdit()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <input type="hidden" id="edit-uid"/>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem" class="fund-grid">
+      <div>
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">First Name</label>
+        <input id="edit-first" class="input-field" placeholder="First name"/>
+      </div>
+      <div>
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Last Name</label>
+        <input id="edit-last" class="input-field" placeholder="Last name"/>
+      </div>
+      <div>
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Phone</label>
+        <input id="edit-phone" class="input-field" placeholder="Phone number"/>
+      </div>
+      <div>
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Email (read-only)</label>
+        <input id="edit-email" class="input-field" readonly style="opacity:.5"/>
+      </div>
+      <div>
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Account Number</label>
+        <input id="edit-acct" class="input-field" placeholder="Account number"/>
+      </div>
+      <div>
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Account Type</label>
+        <select id="edit-acct-type" class="input-field">
+          <option value="Checking">Checking</option>
+          <option value="Savings">Savings</option>
+          <option value="Money Market">Money Market</option>
+          <option value="Business">Business</option>
+        </select>
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Balance (USD)</label>
+        <div style="position:relative">
+          <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-weight:600">$</span>
+          <input id="edit-balance" type="number" class="input-field" style="padding-left:2rem" placeholder="0.00"/>
+        </div>
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Member Since (Join Date)</label>
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+          <input id="edit-join-date" type="month" class="input-field" style="max-width:220px" title="Pick the month and year the user joined"/>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.35)">Displays as "Member since <span id="edit-join-preview" style="color:var(--teal-light);font-weight:600">—</span>" on user dashboard</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="closeUserEdit()" class="btn-xs btn-block" style="flex:1;padding:.7rem;font-size:.85rem">Cancel</button>
+      <button onclick="saveUserEdit()" class="btn-primary" style="flex:2;padding:.7rem;font-size:.9rem">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- USER TRANSACTION HISTORY MODAL -->
+<div class="modal" id="user-tx-history-modal">
+  <div class="modal-overlay" onclick="closeUserTxHistory()"></div>
+  <div class="modal-box modal-box-xl" style="max-width:760px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem">
+      <div>
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700" id="user-tx-history-title">Transaction History</h3>
+        <p style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:.2rem" id="user-tx-history-sub">All transactions for this account</p>
+      </div>
+      <button onclick="closeUserTxHistory()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+      <button class="tab-filter active" onclick="filterUserTxHistory('all',this)">All</button>
+      <button class="tab-filter" onclick="filterUserTxHistory('pending',this)">Pending</button>
+      <button class="tab-filter" onclick="filterUserTxHistory('approved',this)">Approved</button>
+      <button class="tab-filter" onclick="filterUserTxHistory('transfer',this)">Transfers</button>
+      <button class="tab-filter" onclick="filterUserTxHistory('deposit',this)">Deposits</button>
+    </div>
+    <div id="user-tx-history-list" style="max-height:60vh;overflow-y:auto;padding-right:.25rem"></div>
+    <div style="margin-top:1rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:.75rem;color:rgba(255,255,255,.35)" id="user-tx-history-count">0 transactions</span>
+      <button onclick="closeUserTxHistory()" class="btn-xs btn-view" style="padding:.5rem 1.2rem">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- CARD CATALOG MODAL -->
+<div class="modal" id="card-catalog-modal">
+  <div class="modal-overlay" onclick="closeCardCatalogModal()"></div>
+  <div class="modal-box modal-box-lg">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700">Add / Edit Card Type</h3>
+      <button onclick="closeCardCatalogModal()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <input type="hidden" id="cc-edit-id"/>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem" class="fund-grid">
+      <div>
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Card Name</label>
+        <input id="cc-name" class="input-field" placeholder="e.g. Platinum Visa"/>
+      </div>
+      <div>
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Price (USD)</label>
+        <div style="position:relative">
+          <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-weight:600">$</span>
+          <input id="cc-price" type="number" class="input-field" style="padding-left:2rem" placeholder="0.00" min="0"/>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Icon / Emoji</label>
+        <input id="cc-icon" class="input-field" placeholder="e.g. 💳" maxlength="4"/>
+      </div>
+      <div>
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Color (hex)</label>
+        <input id="cc-color" class="input-field" placeholder="e.g. #00857C"/>
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:.78rem;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:.4rem">Description</label>
+        <input id="cc-desc" class="input-field" placeholder="e.g. 0% APR for 18 months, no annual fee"/>
+      </div>
+    </div>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="closeCardCatalogModal()" class="btn-xs btn-block" style="flex:1;padding:.7rem;font-size:.85rem">Cancel</button>
+      <button onclick="saveCardCatalog()" class="btn-primary" style="flex:2;padding:.7rem;font-size:.9rem">Save Card Type</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOAN DETAIL MODAL -->
+<div class="modal" id="loan-detail-modal">
+  <div class="modal-overlay" onclick="closeLoanDetail()"></div>
+  <div class="modal-box modal-box-lg">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700">Loan Application Details</h3>
+      <button onclick="closeLoanDetail()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <div id="loan-detail-body"></div>
+    <div id="loan-detail-actions" style="margin-top:1.5rem;display:flex;gap:.75rem"></div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getDatabase, ref, get, set, push, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD_yrAE0WCnNPjc_2FZ4ZhLG2AJRFA6V2c",
+    authDomain: "navy-credit-union-2f63d.firebaseapp.com",
+    databaseURL: "https://navy-credit-union-2f63d-default-rtdb.firebaseio.com",
+    projectId: "navy-credit-union-2f63d",
+    storageBucket: "navy-credit-union-2f63d.firebasestorage.app",
+    messagingSenderId: "176577787303",
+    appId: "1:176577787303:web:7281f340b470daeb45f282"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  let allTx = [], allUsers = [], adminTxFilter = 'all', cryptoAddresses = {}, fundOp = 'credit', bankDetails = {};
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'admin-login.html'; return; }
+    try {
+      const snap = await get(ref(db, `users/${user.uid}/role`));
+      if (snap.val() !== 'admin') { window.location.href = 'admin-login.html'; return; }
+    } catch(e) {
+      console.error('Auth check error:', e.message);
+      window.location.href = 'admin-login.html'; return;
+    }
+    loadAll();
+    setTimeout(() => {
+      document.getElementById('preloader').classList.add('hide');
+      document.getElementById('site').classList.add('show');
+    }, 2000);
+  });
+
+  function loadAll() {
+    onValue(ref(db, 'transactions'), (snap) => {
+      allTx = [];
+      if (snap && snap.exists()) {
+        snap.forEach(child => {
+          const data = child.val();
+          if (data && typeof data === 'object') {
+            allTx.push({ id: child.key, ...data });
+          }
+        });
+      }
+      allTx.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      renderAdminTx();
+      renderRecentTx();
+      updateStats();
+      const pending = allTx.filter(t => t.status === 'pending').length;
+      const pcEl = document.getElementById('pending-count');
+      const spEl = document.getElementById('stat-pending');
+      if (pcEl) pcEl.textContent = pending;
+      if (spEl) spEl.textContent = pending;
+    }, (err) => {
+      console.error('Transactions read error:', err.code, err.message);
+      const body = document.getElementById('all-tx-body');
+      if (body) body.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ff6b7a;padding:2rem">\u26a0 Permission denied. Check Firebase rules allow admin to read /transactions</td></tr>`;
+    });
+
+    onValue(ref(db, 'users'), (snap) => {
+      allUsers = [];
+      if (snap && snap.exists()) {
+        snap.forEach(child => {
+          const data = child.val();
+          if (data && typeof data === 'object') {
+            allUsers.push({ uid: child.key, ...data });
+          }
+        });
+      }
+      renderUsers();
+      populateFundSelect();
+      const suEl = document.getElementById('stat-users');
+      if (suEl) suEl.textContent = allUsers.filter(u => u.role !== 'admin').length;
+    }, (err) => { console.error('Users read error:', err.code, err.message); });
+
+    onValue(ref(db, 'cryptoAddresses'), (snap) => {
+      cryptoAddresses = (snap && snap.exists()) ? (snap.val() || {}) : {};
+      renderWalletGrid();
+    }, (err) => { console.error('CryptoAddresses error:', err.message); });
+
+    onValue(ref(db, 'bankDepositDetails'), (snap) => {
+      bankDetails = (snap && snap.exists()) ? (snap.val() || {}) : {};
+      loadBankForm();
+    }, (err) => { console.error('BankDetails error:', err.message); });
+    loadCards();
+    loadLoans();
+  }
+
+  function updateStats() {
+    let deposited = 0, transferred = 0;
+    allTx.forEach(tx => {
+      if (tx.status === 'approved') {
+        if (tx.type === 'deposit' || tx.type === 'fund') deposited += (tx.amount || 0);
+        else transferred += (tx.amount || 0);
+      }
+    });
+    document.getElementById('stat-deposited').textContent = '$' + deposited.toFixed(0);
+    document.getElementById('stat-transferred').textContent = '$' + transferred.toFixed(0);
+  }
+
+  // ── TX RENDERING ──
+  function txRow(tx, full = true) {
+    const statusClass = `badge-${tx.status}`;
+    const date = new Date(tx.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const typeIcon = tx.type === 'deposit' ? '↓' : tx.type === 'fund' ? '★' : '↑';
+    const typeColor = tx.type === 'deposit' || tx.type === 'fund' ? '#4ade80' : '#ff6b7a';
+    let detailsText = '';
+    if (tx.type === 'transfer') {
+      const bankPart = tx.bank || tx.transferType || '';
+      const acctPart = tx.account ? ' · ···' + String(tx.account).slice(-4) : '';
+      const namePart = tx.name ? tx.name : '';
+      detailsText = [namePart, bankPart + acctPart].filter(Boolean).join('<br>');
+    } else if (tx.type === 'deposit') {
+      const methodPart = tx.depositMethod === 'crypto' ? (tx.cryptoAmount ? tx.cryptoAmount + ' ' : '') + (tx.cryptoCoin || '') : (tx.depositMethod || '').replace('_', ' ');
+      detailsText = methodPart || '—';
+    } else if (tx.type === 'fund') {
+      detailsText = tx.description || 'Admin Fund';
+    }
+    const detailsCell = `<div style="font-size:.78rem;color:rgba(255,255,255,.5)">${detailsText || '—'}</div>`;
+    const actions = tx.status === 'pending' ? `
+      <div style="display:flex;gap:.4rem">
+        <button class="btn-xs btn-approve" onclick="approveTx('${tx.id}')">✓ Approve</button>
+        <button class="btn-xs btn-decline" onclick="declineTx('${tx.id}')">✗ Decline</button>
+        <button class="btn-xs btn-view" onclick="viewTx('${tx.id}')">👁</button>
+      </div>` :
+      `<button class="btn-xs btn-view" onclick="viewTx('${tx.id}')">👁 View</button>`;
+    if (full) {
+      return `<tr>
+        <td><div style="font-weight:600;font-size:.855rem">${tx.userName || '—'}</div><div style="font-size:.72rem;color:rgba(255,255,255,.35)">${tx.userEmail || ''}</div></td>
+        <td><span style="color:${typeColor};font-weight:600">${typeIcon} ${(tx.type||'').toUpperCase()}</span></td>
+        <td style="max-width:180px">${detailsCell}</td>
+        <td style="font-weight:700;font-size:.9rem">$${parseFloat(tx.amount || 0).toFixed(2)}</td>
+        <td><span class="badge ${statusClass}">${tx.status}</span></td>
+        <td style="color:rgba(255,255,255,.45);font-size:.78rem;white-space:nowrap">${date}</td>
+        <td>${actions}</td>
+      </tr>`;
+    } else {
+      return `<tr>
+        <td><div style="font-weight:600;font-size:.855rem">${tx.userName || '—'}</div><div style="font-size:.72rem;color:rgba(255,255,255,.35)">${tx.userEmail || ''}</div></td>
+        <td><span style="color:${typeColor};font-weight:600">${typeIcon} ${(tx.type||'').toUpperCase()}</span></td>
+        <td style="font-weight:700;font-size:.9rem">$${parseFloat(tx.amount || 0).toFixed(2)}</td>
+        <td><span class="badge ${statusClass}">${tx.status}</span></td>
+        <td style="color:rgba(255,255,255,.45);font-size:.78rem;white-space:nowrap">${date}</td>
+        <td>${actions}</td>
+      </tr>`;
+    }
+  }
+
+  function renderRecentTx() {
+    const body = document.getElementById('recent-tx-body');
+    const recent = allTx.slice(0, 8);
+    body.innerHTML = recent.length ? recent.map(t => txRow(t, false)).join('') : `<tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,.3);padding:2rem">No transactions yet</td></tr>`;
+  }
+
+  function renderAdminTx(filter = adminTxFilter) {
+    const search = (document.getElementById('tx-search')?.value || '').toLowerCase();
+    let list = allTx;
+    if (filter === 'pending') list = list.filter(t => t.status === 'pending');
+    else if (filter === 'approved') list = list.filter(t => t.status === 'approved');
+    else if (filter === 'declined') list = list.filter(t => t.status === 'declined');
+    else if (filter === 'transfer') list = list.filter(t => t.type === 'transfer');
+    else if (filter === 'deposit') list = list.filter(t => t.type === 'deposit');
+    if (search) list = list.filter(t => (t.userName || '').toLowerCase().includes(search) || (t.userEmail || '').toLowerCase().includes(search) || (t.description || '').toLowerCase().includes(search));
+    const body = document.getElementById('all-tx-body');
+    body.innerHTML = list.length ? list.map(t => txRow(t)).join('') : `<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.3);padding:2rem">No transactions found</td></tr>`;
+  }
+
+  window.filterAdminTx = function(filter, btn) {
+    if (filter && !['all', 'pending', 'transfer', 'deposit', 'approved', 'declined'].includes(filter)) {
+      renderAdminTx(adminTxFilter); return;
+    }
+    if (btn) {
+      document.querySelectorAll('.tab-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      adminTxFilter = filter || 'all';
+    }
+    renderAdminTx(adminTxFilter);
+  };
+
+  // ── VIEW TX DETAIL ──
+  window.viewTx = function(txId) {
+    const tx = allTx.find(t => t.id === txId);
+    if (!tx) return;
+    const date = new Date(tx.createdAt).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' });
+    const fieldMap = {
+      name: 'Recipient Name', bank: 'Bank', account: 'Account #', routing: 'Routing #',
+      iban: 'IBAN', swift: 'SWIFT/BIC', country: 'Country',
+      transferType: 'Transfer Type', depositMethod: 'Deposit Method',
+      cryptoCoin: 'Crypto Coin', cryptoAmount: 'Crypto Amount',
+      reference: 'Reference', description: 'Description',
+    };
+    const rows = Object.entries(fieldMap).filter(([k]) => tx[k]).map(([k, label]) =>
+      `<div class="detail-row"><span style="font-size:.8rem;color:rgba(255,255,255,.45);font-weight:500">${label}</span><span style="font-size:.85rem;font-weight:600;text-align:right;max-width:200px;word-break:break-all">${tx[k]}</span></div>`
+    ).join('');
+
+    document.getElementById('tx-detail-body').innerHTML = `
+      <div style="display:flex;align-items:center;gap:1rem;padding:1rem;background:rgba(255,255,255,.04);border-radius:12px;margin-bottom:1.25rem">
+        <div style="width:50px;height:50px;border-radius:14px;background:${tx.type === 'deposit' || tx.type === 'fund' ? 'rgba(0,133,124,.15)' : 'rgba(201,168,76,.12)'};display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:${tx.type === 'deposit' || tx.type === 'fund' ? '#4ade80' : '#ff6b7a'}">${tx.type === 'deposit' ? '↓' : tx.type === 'fund' ? '★' : '↑'}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:1.1rem">${tx.description || tx.type}</div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:.15rem">${tx.userName || ''} · ${tx.userEmail || ''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:${tx.type === 'deposit' || tx.type === 'fund' ? '#4ade80' : '#ff6b7a'}">$${parseFloat(tx.amount || 0).toFixed(2)}</div>
+          <span class="badge badge-${tx.status}">${tx.status}</span>
+        </div>
+      </div>
+      <div style="margin-bottom:.75rem">
+        <div class="detail-row"><span style="font-size:.8rem;color:rgba(255,255,255,.45);font-weight:500">Date</span><span style="font-size:.85rem;font-weight:600">${date}</span></div>
+        <div class="detail-row"><span style="font-size:.8rem;color:rgba(255,255,255,.45);font-weight:500">Transaction ID</span><span style="font-size:.78rem;font-family:'Space Grotesk',monospace;color:rgba(255,255,255,.6)">${tx.id}</span></div>
+        ${rows}
+      </div>`;
+
+    const actEl = document.getElementById('tx-detail-actions');
+    if (tx.status === 'pending') {
+      actEl.innerHTML = `
+        <button onclick="approveTx('${tx.id}');closeTxDetail()" class="btn-xs btn-approve" style="flex:1;padding:.7rem;font-size:.85rem">✓ Approve</button>
+        <button onclick="declineTx('${tx.id}');closeTxDetail()" class="btn-xs btn-decline" style="flex:1;padding:.7rem;font-size:.85rem">✗ Decline</button>`;
+    } else {
+      actEl.innerHTML = '';
+    }
+
+    document.getElementById('tx-detail-modal').classList.add('open');
+  };
+  window.closeTxDetail = function() { document.getElementById('tx-detail-modal').classList.remove('open'); };
+
+  // ── APPROVE / DECLINE ──
+  window.approveTx = async function(txId) {
+    const tx = allTx.find(t => t.id === txId);
+    if (!tx) return;
+    try {
+      await update(ref(db, `transactions/${txId}`), { status: 'approved', approvedAt: Date.now() });
+      const userRef = ref(db, `users/${tx.userId}/balance`);
+      const balSnap = await get(userRef);
+      const bal = balSnap.val() || 0;
+      if (tx.type === 'transfer') {
+        await set(userRef, Math.max(0, bal - tx.amount));
+      } else if (tx.type === 'deposit') {
+        await set(userRef, bal + tx.amount);
+        await push(ref(db, 'transactions'), {
+          userId: tx.userId, userEmail: tx.userEmail, userName: tx.userName,
+          type: 'fund', status: 'approved', amount: tx.amount,
+          description: `Approved ${tx.cryptoCoin || tx.depositMethod || ''} deposit`,
+          createdAt: Date.now()
+        });
+      }
+      showToast('Transaction approved ✓', 'success');
+    } catch (e) { showToast(e.message, 'error'); }
+  };
+
+  window.declineTx = async function(txId) {
+    openConfirm('Decline Transaction', 'Are you sure you want to decline this transaction? The user will be notified.', async () => {
+      try {
+        await update(ref(db, `transactions/${txId}`), { status: 'declined', declinedAt: Date.now() });
+        showToast('Transaction declined', 'info');
+      } catch (e) { showToast(e.message, 'error'); }
+    });
+  };
+
+  // ── USERS ──
+  function renderUsers(list = null) {
+    const search = (document.getElementById('user-search')?.value || '').toLowerCase();
+    let users = list || allUsers.filter(u => u.role !== 'admin');
+    if (search) users = users.filter(u => (u.firstName + ' ' + u.lastName).toLowerCase().includes(search) || (u.email || '').toLowerCase().includes(search) || (u.accountNumber || '').toLowerCase().includes(search));
+    const body = document.getElementById('users-body');
+    if (!users.length) { body.innerHTML = `<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.3);padding:2rem">No users found</td></tr>`; return; }
+    body.innerHTML = users.map(u => {
+      const name = `${u.firstName || ''} ${u.lastName || ''}`;
+      const initials = ((u.firstName || '?')[0] + (u.lastName || '?')[0]).toUpperCase();
+      const bal = `$${parseFloat(u.balance || 0).toFixed(2)}`;
+      const acct = (u.accountNumber || '').slice(0, 2) + '••••' + (u.accountNumber || '').slice(-4);
+      const joined = new Date(u.createdAt || 0).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const blockBtn = u.blocked
+        ? `<button class="btn-xs btn-approve" onclick="toggleBlock('${u.uid}',false)">Unblock</button>`
+        : `<button class="btn-xs btn-block" onclick="toggleBlock('${u.uid}',true)">Block</button>`;
+      return `<tr>
+        <td><div style="display:flex;align-items:center;gap:.65rem">
+          <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--navy-mid));display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:.78rem;flex-shrink:0">${initials}</div>
+          <div><div style="font-weight:600;font-size:.855rem">${name}</div></div>
+        </div></td>
+        <td style="color:rgba(255,255,255,.55);font-size:.82rem">${u.email || '—'}</td>
+        <td class="hide-mobile" style="font-family:'Space Grotesk',monospace;font-size:.78rem;color:rgba(255,255,255,.5)">${acct}</td>
+        <td style="font-weight:700;color:var(--teal-light)">${bal}</td>
+        <td><span class="badge ${u.blocked ? 'badge-blocked' : 'badge-active'}">${u.blocked ? 'Blocked' : 'Active'}</span></td>
+        <td class="hide-mobile" style="color:rgba(255,255,255,.4);font-size:.78rem">${joined}</td>
+        <td><div style="display:flex;gap:.4rem;flex-wrap:wrap">
+          <button class="btn-xs btn-approve" onclick="quickFund('${u.uid}')">$ Fund</button>
+          <button class="btn-xs btn-view" onclick="openUserEdit('${u.uid}')">✎ Edit</button>
+          <button class="btn-xs btn-view" onclick="openUserTxHistory('${u.uid}')" style="background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.25)">📋 History</button>
+          ${blockBtn}
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.filterUsers = function() { renderUsers(); };
+
+  window.toggleBlock = async function(uid, block) {
+    openConfirm(`${block ? 'Block' : 'Unblock'} User`, `Are you sure you want to ${block ? 'block' : 'unblock'} this user?`, async () => {
+      try {
+        await update(ref(db, `users/${uid}`), { blocked: block });
+        showToast(`User ${block ? 'blocked' : 'unblocked'} successfully`, 'success');
+      } catch (e) { showToast(e.message, 'error'); }
+    });
+  };
+
+  window.quickFund = function(uid) {
+    showPage('fund');
+    document.getElementById('fund-user').value = uid;
+    loadFundUserInfo();
+  };
+
+  // ── USER EDIT ──
+  window.openUserEdit = function(uid) {
+    const u = allUsers.find(x => x.uid === uid);
+    if (!u) return;
+    document.getElementById('edit-uid').value = uid;
+    document.getElementById('edit-first').value = u.firstName || '';
+    document.getElementById('edit-last').value = u.lastName || '';
+    document.getElementById('edit-phone').value = u.phone || '';
+    document.getElementById('edit-email').value = u.email || '';
+    document.getElementById('edit-acct').value = u.accountNumber || '';
+    document.getElementById('edit-acct-type').value = u.accountType || 'Checking';
+    document.getElementById('edit-balance').value = parseFloat(u.balance || 0).toFixed(2);
+
+    // Populate join date (month input expects "YYYY-MM")
+    const joinInput = document.getElementById('edit-join-date');
+    const joinPreview = document.getElementById('edit-join-preview');
+    if (u.createdAt) {
+      const d = new Date(u.createdAt);
+      const pad = n => String(n).padStart(2,'0');
+      joinInput.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+      joinPreview.textContent = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    } else {
+      joinInput.value = '';
+      joinPreview.textContent = '—';
+    }
+    // Live preview as admin changes the month
+    joinInput.oninput = function() {
+      if (this.value) {
+        const [yr, mo] = this.value.split('-');
+        const d = new Date(parseInt(yr), parseInt(mo)-1, 1);
+        joinPreview.textContent = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      } else {
+        joinPreview.textContent = '—';
+      }
+    };
+
+    document.getElementById('user-edit-modal').classList.add('open');
+  };
+
+  window.closeUserEdit = function() { document.getElementById('user-edit-modal').classList.remove('open'); };
+
+  window.saveUserEdit = async function() {
+    const uid = document.getElementById('edit-uid').value;
+    const updates = {
+      firstName: document.getElementById('edit-first').value.trim(),
+      lastName: document.getElementById('edit-last').value.trim(),
+      phone: document.getElementById('edit-phone').value.trim(),
+      accountNumber: document.getElementById('edit-acct').value.trim(),
+      accountType: document.getElementById('edit-acct-type').value,
+      balance: parseFloat(document.getElementById('edit-balance').value) || 0,
+    };
+    // Save join date if provided
+    const joinVal = document.getElementById('edit-join-date').value;
+    if (joinVal) {
+      const [yr, mo] = joinVal.split('-');
+      updates.createdAt = new Date(parseInt(yr), parseInt(mo)-1, 1).getTime();
+    }
+    try {
+      await update(ref(db, `users/${uid}`), updates);
+      closeUserEdit();
+      showToast('User profile updated ✓', 'success');
+    } catch (e) { showToast(e.message, 'error'); }
+  };
+
+  // ── FUND ──
+  window.setFundOp = function(op, btn) {
+    fundOp = op;
+    document.querySelectorAll('#page-fund .tab-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  };
+
+  function populateFundSelect() {
+    const sel = document.getElementById('fund-user');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— Select a user —</option>';
+    allUsers.filter(u => u.role !== 'admin').forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.uid;
+      opt.textContent = `${u.firstName} ${u.lastName} (${u.email})`;
+      sel.appendChild(opt);
+    });
+    if (cur) sel.value = cur;
+  }
+
+  window.loadFundUserInfo = function() {
+    const uid = document.getElementById('fund-user').value;
+    const info = document.getElementById('fund-user-info');
+    if (!uid) { info.style.display = 'none'; return; }
+    const u = allUsers.find(x => x.uid === uid);
+    if (!u) { info.style.display = 'none'; return; }
+    document.getElementById('fi-name').textContent = `${u.firstName} ${u.lastName}`;
+    document.getElementById('fi-email').textContent = u.email;
+    document.getElementById('fi-balance').textContent = `$${parseFloat(u.balance || 0).toFixed(2)}`;
+    info.style.display = 'block';
+  };
+
+  window.submitFund = async function() {
+    const uid = document.getElementById('fund-user').value;
+    const amount = parseFloat(document.getElementById('fund-amount').value);
+    const note = document.getElementById('fund-note').value.trim();
+    if (!uid) { showToast('Please select a user', 'error'); return; }
+    if (!amount || amount <= 0) { showToast('Enter a valid amount', 'error'); return; }
+    const u = allUsers.find(x => x.uid === uid);
+    if (!u) return;
+
+    const opLabel = fundOp === 'credit' ? 'Credit' : 'Debit';
+    openConfirm(`Confirm ${opLabel}`, `${opLabel} $${amount.toFixed(2)} ${fundOp === 'credit' ? 'to' : 'from'} ${u.firstName} ${u.lastName}'s account?`, async () => {
+      try {
+        const currentBal = u.balance || 0;
+        const newBal = fundOp === 'credit' ? currentBal + amount : Math.max(0, currentBal - amount);
+        await update(ref(db, `users/${uid}`), { balance: newBal });
+        await push(ref(db, 'transactions'), {
+          userId: uid, userEmail: u.email, userName: `${u.firstName} ${u.lastName}`,
+          type: 'fund', status: 'approved', amount,
+          description: note || `Admin ${opLabel}`,
+          createdAt: Date.now()
+        });
+        document.getElementById('fund-amount').value = '';
+        document.getElementById('fund-note').value = '';
+        document.getElementById('fund-user').value = '';
+        document.getElementById('fund-user-info').style.display = 'none';
+        showToast(`$${amount.toFixed(2)} ${fundOp === 'credit' ? 'credited to' : 'debited from'} ${u.firstName}'s account ✓`, 'success');
+      } catch (e) { showToast(e.message, 'error'); }
+    });
+  };
+
+  // ── BANK DEPOSIT DETAILS ──
+  function loadBankForm() {
+    const fields = ['bankName', 'accountName', 'accountNumber', 'routingNumber', 'swiftCode', 'iban', 'bankAddress', 'reference'];
+    fields.forEach(k => {
+      const el = document.getElementById(`bd-${k}`);
+      if (el && bankDetails[k]) el.value = bankDetails[k];
+    });
+    updateBankPreview();
+
+    // Live preview on input
+    fields.forEach(k => {
+      const el = document.getElementById(`bd-${k}`);
+      if (el) el.addEventListener('input', updateBankPreview);
+    });
+  }
+
+  function updateBankPreview() {
+    const fieldLabels = {
+      bankName: '🏦 Bank Name', accountName: '👤 Account Name', accountNumber: '#️⃣ Account Number',
+      routingNumber: '🔢 Routing Number', swiftCode: '🌐 SWIFT/BIC', iban: '🔐 IBAN',
+      bankAddress: '📍 Bank Address', reference: '📋 Reference',
+    };
+    const rows = Object.entries(fieldLabels).map(([k, label]) => {
+      const val = (document.getElementById(`bd-${k}`)?.value || '').trim();
+      if (!val) return '';
+      return `<div class="bank-detail-row">
+        <span style="font-size:.8rem;color:rgba(255,255,255,.5)">${label}</span>
+        <span style="font-size:.85rem;font-weight:600;font-family:'Space Grotesk',monospace">${val}</span>
+      </div>`;
+    }).filter(Boolean).join('');
+    document.getElementById('bd-preview-rows').innerHTML = rows || '<p style="font-size:.82rem;color:rgba(255,255,255,.3)">Fill in details above to preview</p>';
+  }
+
+  window.saveBankDetails = async function() {
+    const fields = ['bankName', 'accountName', 'accountNumber', 'routingNumber', 'swiftCode', 'iban', 'bankAddress', 'reference'];
+    const data = {};
+    fields.forEach(k => {
+      const val = (document.getElementById(`bd-${k}`)?.value || '').trim();
+      if (val) data[k] = val;
+    });
+    try {
+      await set(ref(db, 'bankDepositDetails'), data);
+      showToast('Bank details saved ✓ Users will now see these', 'success');
+    } catch (e) { showToast(e.message, 'error'); }
+  };
+
+  // ── CRYPTO WALLETS ──
+  const cryptoList = [
+    { id: 'btc', name: 'Bitcoin', symbol: 'BTC', icon: '₿', color: '#F7931A' },
+    { id: 'eth', name: 'Ethereum', symbol: 'ETH', icon: 'Ξ', color: '#627EEA' },
+    { id: 'usdt', name: 'Tether', symbol: 'USDT', icon: '₮', color: '#26A17B' },
+    { id: 'bnb', name: 'BNB', symbol: 'BNB', icon: '◈', color: '#F3BA2F' },
+    { id: 'sol', name: 'Solana', symbol: 'SOL', icon: '◎', color: '#9945FF' },
+    { id: 'xrp', name: 'XRP', symbol: 'XRP', icon: '✕', color: '#346AA9' },
+  ];
+
+  function renderWalletGrid() {
+    document.getElementById('wallet-grid').innerHTML = cryptoList.map(c => `
+      <div class="crypto-addr-card">
+        <div style="display:flex;align-items:center;gap:.85rem;margin-bottom:1.25rem">
+          <div style="width:44px;height:44px;border-radius:12px;background:${c.color}22;border:1px solid ${c.color}44;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:${c.color}">${c.icon}</div>
+          <div>
+            <div style="font-weight:700;color:white">${c.name}</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.4)">${c.symbol}</div>
+          </div>
+          <div style="margin-left:auto">
+            ${cryptoAddresses[c.id]
+              ? '<span style="font-size:.7rem;color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);padding:.2rem .5rem;border-radius:6px">✓ SET</span>'
+              : '<span style="font-size:.7rem;color:rgba(255,255,255,.3);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:.2rem .5rem;border-radius:6px">EMPTY</span>'}
+          </div>
+        </div>
+        <div style="margin-bottom:.65rem">
+          <label style="font-size:.72rem;font-weight:500;color:rgba(255,255,255,.4);display:block;margin-bottom:.4rem;letter-spacing:.06em">WALLET ADDRESS</label>
+          <input id="wallet-${c.id}" class="input-field" style="font-family:'Space Grotesk',monospace;font-size:.78rem" placeholder="Paste ${c.symbol} address here" value="${cryptoAddresses[c.id] || ''}"/>
+        </div>
+        <button onclick="saveWallet('${c.id}')" class="btn-xs btn-approve" style="width:100%;padding:.5rem;font-size:.8rem">Save Address</button>
+      </div>`).join('');
+  }
+
+  window.saveWallet = async function(coinId) {
+    const addr = document.getElementById(`wallet-${coinId}`).value.trim();
+    try {
+      await set(ref(db, `cryptoAddresses/${coinId}`), addr);
+      showToast(`${coinId.toUpperCase()} address saved ✓`, 'success');
+    } catch (e) { showToast(e.message, 'error'); }
+  };
+
+  // ── CARDS ──
+  let allCardApps = [], allCardCatalog = [], cardAppFilter = 'all';
+
+  function loadCards() {
+    onValue(ref(db, 'cardCatalog'), (snap) => {
+      allCardCatalog = [];
+      if (snap.exists()) snap.forEach(c => allCardCatalog.push({ id: c.key, ...c.val() }));
+      renderCardCatalog();
+    });
+    onValue(ref(db, 'cardApplications'), (snap) => {
+      allCardApps = [];
+      if (snap.exists()) snap.forEach(c => allCardApps.push({ id: c.key, ...c.val() }));
+      allCardApps.sort((a, b) => (b.appliedAt || 0) - (a.appliedAt || 0));
+      renderCardApps();
+      const pending = allCardApps.filter(a => a.status === 'pending').length;
+      const el = document.getElementById('card-req-count');
+      if (el) el.textContent = pending;
+    });
+  }
+
+  function renderCardCatalog() {
+    const grid = document.getElementById('card-catalog-grid');
+    if (!grid) return;
+    if (!allCardCatalog.length) {
+      grid.innerHTML = '<div style="color:rgba(255,255,255,.3);font-size:.85rem;padding:.5rem">No cards configured yet.</div>';
+      return;
+    }
+    grid.innerHTML = allCardCatalog.map(card => `
+      <div style="background:linear-gradient(135deg,${card.color || '#00857C'}22,${card.color || '#00857C'}08);border:1px solid ${card.color || '#00857C'}44;border-radius:16px;padding:1.25rem;position:relative">
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.85rem">
+          <div style="width:42px;height:42px;border-radius:12px;background:${card.color || '#00857C'}33;border:1px solid ${card.color || '#00857C'}55;display:flex;align-items:center;justify-content:center;font-size:1.3rem">${card.icon || '💳'}</div>
+          <div>
+            <div style="font-weight:700;color:white;font-size:.95rem">${card.name || 'Unnamed Card'}</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.45)">${card.description || ''}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:${card.color || '#00A896'}">$${Number(card.price || 0).toLocaleString()}</div>
+          <div style="display:flex;gap:.4rem">
+            <button onclick="editCardCatalog('${card.id}')" class="btn-xs btn-view" style="font-size:.72rem">Edit</button>
+            <button onclick="deleteCardCatalog('${card.id}')" class="btn-xs btn-decline" style="font-size:.72rem">Delete</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderCardApps() {
+    const tbody = document.getElementById('card-apps-body');
+    if (!tbody) return;
+    let list = allCardApps;
+    if (cardAppFilter !== 'all') list = list.filter(a => a.status === cardAppFilter);
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.3);padding:2rem">No applications found</td></tr>`; return; }
+    tbody.innerHTML = list.map(app => {
+      const user = allUsers.find(u => u.uid === app.userId) || {};
+      const name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || app.userEmail || app.userId?.slice(0,8) || '—';
+      const date = app.appliedAt ? new Date(app.appliedAt).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '—';
+      const badgeCls = app.status === 'approved' ? 'badge-approved' : app.status === 'declined' ? 'badge-declined' : 'badge-pending';
+      const actions = app.status === 'pending'
+        ? `<button onclick="approveCardApp('${app.id}')" class="btn-xs btn-approve" style="margin-right:.35rem">Approve</button><button onclick="declineCardApp('${app.id}')" class="btn-xs btn-decline">Decline</button>`
+        : `<span style="font-size:.75rem;color:rgba(255,255,255,.3)">${app.status}</span>`;
+      return `<tr>
+        <td><div style="font-weight:600;font-size:.85rem">${name}</div><div style="font-size:.72rem;color:rgba(255,255,255,.35)">${app.userEmail || ''}</div></td>
+        <td>${app.cardName || '—'}</td>
+        <td style="font-weight:600;color:var(--teal-light)">$${Number(app.cardPrice || 0).toLocaleString()}</td>
+        <td style="color:rgba(255,255,255,.6)">$${Number(app.userBalance || 0).toLocaleString()}</td>
+        <td><span class="badge ${badgeCls}">${app.status}</span></td>
+        <td style="color:rgba(255,255,255,.45);font-size:.8rem">${date}</td>
+        <td>${actions}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.filterCardApps = function(filter, el) {
+    cardAppFilter = filter;
+    document.querySelectorAll('#page-cards .tab-filter').forEach(b => b.classList.remove('active'));
+    if (el) el.classList.add('active');
+    renderCardApps();
+  };
+
+  window.openCardCatalogModal = function(id) {
+    document.getElementById('cc-edit-id').value = '';
+    document.getElementById('cc-name').value = '';
+    document.getElementById('cc-price').value = '';
+    document.getElementById('cc-icon').value = '';
+    document.getElementById('cc-color').value = '';
+    document.getElementById('cc-desc').value = '';
+    document.getElementById('card-catalog-modal').classList.add('open');
+  };
+
+  window.editCardCatalog = function(id) {
+    const card = allCardCatalog.find(c => c.id === id);
+    if (!card) return;
+    document.getElementById('cc-edit-id').value = id;
+    document.getElementById('cc-name').value = card.name || '';
+    document.getElementById('cc-price').value = card.price || '';
+    document.getElementById('cc-icon').value = card.icon || '';
+    document.getElementById('cc-color').value = card.color || '';
+    document.getElementById('cc-desc').value = card.description || '';
+    document.getElementById('card-catalog-modal').classList.add('open');
+  };
+
+  window.closeCardCatalogModal = function() {
+    document.getElementById('card-catalog-modal').classList.remove('open');
+  };
+
+  window.saveCardCatalog = async function() {
+    const editId = document.getElementById('cc-edit-id').value;
+    const name = document.getElementById('cc-name').value.trim();
+    const price = parseFloat(document.getElementById('cc-price').value) || 0;
+    const icon = document.getElementById('cc-icon').value.trim() || '💳';
+    const color = document.getElementById('cc-color').value.trim() || '#00857C';
+    const description = document.getElementById('cc-desc').value.trim();
+    if (!name || !price) { showToast('Card name and price are required', 'error'); return; }
+    const data = { name, price, icon, color, description, updatedAt: Date.now() };
+    try {
+      if (editId) {
+        await set(ref(db, `cardCatalog/${editId}`), data);
+      } else {
+        await push(ref(db, 'cardCatalog'), data);
+      }
+      showToast('Card type saved ✓', 'success');
+      closeCardCatalogModal();
+    } catch (e) { showToast(e.message, 'error'); }
+  };
+
+  window.deleteCardCatalog = async function(id) {
+    openConfirm('Delete Card Type', 'This card will be removed from the catalog. Existing applications are not affected.', async () => {
+      try {
+        await set(ref(db, `cardCatalog/${id}`), null);
+        showToast('Card type deleted', 'info');
+      } catch (e) { showToast(e.message, 'error'); }
+    });
+  };
+
+  window.approveCardApp = async function(appId) {
+    const app = allCardApps.find(a => a.id === appId);
+    if (!app) return;
+    const user = allUsers.find(u => u.uid === app.userId);
+    const balance = parseFloat(user?.balance || 0);
+    const price = parseFloat(app.cardPrice || 0);
+    if (balance < price) {
+      showToast(`Insufficient balance: User has $${balance.toFixed(2)}, card costs $${price.toFixed(2)}`, 'error');
+      return;
+    }
+    openConfirm('Approve Card Application', `Approve ${app.cardName} for ${app.userEmail}? $${price.toFixed(2)} will be debited from their balance.`, async () => {
+      try {
+        const newBalance = balance - price;
+        await update(ref(db, `cardApplications/${appId}`), { status: 'approved', reviewedAt: Date.now() });
+        await update(ref(db, `users/${app.userId}`), { balance: newBalance });
+        showToast(`Card approved ✓ — $${price.toFixed(2)} debited`, 'success');
+      } catch (e) { showToast(e.message, 'error'); }
+    });
+  };
+
+  window.declineCardApp = async function(appId) {
+    const app = allCardApps.find(a => a.id === appId);
+    if (!app) return;
+    openConfirm('Decline Card Application', `Decline ${app.cardName} for ${app.userEmail}? No funds will be debited.`, async () => {
+      try {
+        await update(ref(db, `cardApplications/${appId}`), { status: 'declined', reviewedAt: Date.now() });
+        showToast('Card application declined', 'info');
+      } catch (e) { showToast(e.message, 'error'); }
+    });
+  };
+
+  // ── LOANS ──
+  let allLoanApps = [], loanAppFilter = 'all';
+
+  function loadLoans() {
+    onValue(ref(db, 'loanApplications'), (snap) => {
+      allLoanApps = [];
+      if (snap.exists()) snap.forEach(c => allLoanApps.push({ id: c.key, ...c.val() }));
+      allLoanApps.sort((a, b) => (b.appliedAt || 0) - (a.appliedAt || 0));
+      renderLoanApps();
+      const pending = allLoanApps.filter(a => a.status === 'pending').length;
+      const el = document.getElementById('loan-req-count');
+      if (el) el.textContent = pending;
+    });
+  }
+
+  function renderLoanApps() {
+    const tbody = document.getElementById('loan-apps-body');
+    if (!tbody) return;
+    let list = allLoanApps;
+    if (loanAppFilter !== 'all') list = list.filter(a => a.status === loanAppFilter);
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:rgba(255,255,255,.3);padding:2rem">No applications found</td></tr>`; return; }
+    tbody.innerHTML = list.map(app => {
+      const user = allUsers.find(u => u.uid === app.userId) || {};
+      const name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || app.userEmail || app.userId?.slice(0,8) || '—';
+      const date = app.appliedAt ? new Date(app.appliedAt).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '—';
+      const badgeCls = app.status === 'approved' ? 'badge-approved' : app.status === 'declined' ? 'badge-declined' : 'badge-pending';
+      const actions = app.status === 'pending'
+        ? `<button onclick="viewLoanDetail('${app.id}')" class="btn-xs btn-view" style="margin-right:.35rem">View</button><button onclick="approveLoanApp('${app.id}')" class="btn-xs btn-approve" style="margin-right:.35rem">Approve</button><button onclick="declineLoanApp('${app.id}')" class="btn-xs btn-decline">Decline</button>`
+        : `<button onclick="viewLoanDetail('${app.id}')" class="btn-xs btn-view">View</button>`;
+      return `<tr>
+        <td><div style="font-weight:600;font-size:.85rem">${name}</div><div style="font-size:.72rem;color:rgba(255,255,255,.35)">${app.userEmail || ''}</div></td>
+        <td style="font-size:.82rem">${app.loanType || '—'}</td>
+        <td style="font-weight:700;color:#4ade80">$${Number(app.amount || 0).toLocaleString()}</td>
+        <td style="font-size:.82rem;color:rgba(255,255,255,.6)">${app.term || '—'}</td>
+        <td style="font-size:.82rem;color:rgba(255,255,255,.55);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${app.purpose || '—'}</td>
+        <td style="font-size:.82rem;color:rgba(255,255,255,.55)">$${Number(app.annualIncome || 0).toLocaleString()}</td>
+        <td><span class="badge ${badgeCls}">${app.status}</span></td>
+        <td style="color:rgba(255,255,255,.45);font-size:.8rem">${date}</td>
+        <td>${actions}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.filterLoanApps = function(filter, el) {
+    loanAppFilter = filter;
+    document.querySelectorAll('#page-loans .tab-filter').forEach(b => b.classList.remove('active'));
+    if (el) el.classList.add('active');
+    renderLoanApps();
+  };
+
+  window.viewLoanDetail = function(appId) {
+    const app = allLoanApps.find(a => a.id === appId);
+    if (!app) return;
+    const user = allUsers.find(u => u.uid === app.userId) || {};
+    const name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || app.userEmail || '—';
+    const badgeCls = app.status === 'approved' ? 'badge-approved' : app.status === 'declined' ? 'badge-declined' : 'badge-pending';
+    const date = app.appliedAt ? new Date(app.appliedAt).toLocaleDateString('en-US', { weekday:'short', month:'long', day:'numeric', year:'numeric' }) : '—';
+    const fields = [
+      ['Applicant', name], ['Email', app.userEmail || '—'], ['Loan Type', app.loanType || '—'],
+      ['Amount Requested', `$${Number(app.amount || 0).toLocaleString()}`],
+      ['Repayment Term', app.term || '—'], ['Purpose', app.purpose || '—'],
+      ['Annual Income', `$${Number(app.annualIncome || 0).toLocaleString()}`],
+      ['Employment Status', app.employmentStatus || '—'],
+      ['Applied On', date], ['Status', `<span class="badge ${badgeCls}">${app.status}</span>`],
+    ];
+    document.getElementById('loan-detail-body').innerHTML = fields.map(([label, val]) =>
+      `<div class="detail-row"><span style="font-size:.78rem;color:rgba(255,255,255,.45)">${label}</span><span style="font-size:.875rem;font-weight:500">${val}</span></div>`
+    ).join('');
+    const actDiv = document.getElementById('loan-detail-actions');
+    actDiv.innerHTML = app.status === 'pending'
+      ? `<button onclick="approveLoanApp('${appId}');closeLoanDetail()" class="btn-primary" style="flex:1;padding:.7rem">Approve & Credit Balance</button>
+         <button onclick="declineLoanApp('${appId}');closeLoanDetail()" class="btn-xs btn-decline" style="flex:1;padding:.7rem;font-size:.875rem">Decline</button>`
+      : '';
+    document.getElementById('loan-detail-modal').classList.add('open');
+  };
+
+  window.closeLoanDetail = function() {
+    document.getElementById('loan-detail-modal').classList.remove('open');
+  };
+
+  window.approveLoanApp = async function(appId) {
+    const app = allLoanApps.find(a => a.id === appId);
+    if (!app) return;
+    const amount = parseFloat(app.amount || 0);
+    const user = allUsers.find(u => u.uid === app.userId);
+    openConfirm('Approve Loan', `Approve $${amount.toLocaleString()} loan for ${app.userEmail}? This amount will be credited to their balance.`, async () => {
+      try {
+        const currentBalance = parseFloat(user?.balance || 0);
+        const newBalance = currentBalance + amount;
+        await update(ref(db, `loanApplications/${appId}`), { status: 'approved', reviewedAt: Date.now() });
+        await update(ref(db, `users/${app.userId}`), { balance: newBalance });
+        showToast(`Loan approved ✓ — $${amount.toLocaleString()} credited to account`, 'success');
+      } catch (e) { showToast(e.message, 'error'); }
+    });
+  };
+
+  window.declineLoanApp = async function(appId) {
+    const app = allLoanApps.find(a => a.id === appId);
+    if (!app) return;
+    openConfirm('Decline Loan Application', `Decline the $${Number(app.amount || 0).toLocaleString()} loan request for ${app.userEmail}?`, async () => {
+      try {
+        await update(ref(db, `loanApplications/${appId}`), { status: 'declined', reviewedAt: Date.now() });
+        showToast('Loan application declined', 'info');
+      } catch (e) { showToast(e.message, 'error'); }
+    });
+  };
+
+  // ── USER TRANSACTION HISTORY ──
+  let currentHistoryUid = null;
+  let currentHistoryFilter = 'all';
+
+  window.openUserTxHistory = function(uid) {
+    const u = allUsers.find(x => x.uid === uid);
+    if (!u) return;
+    currentHistoryUid = uid;
+    currentHistoryFilter = 'all';
+    const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email || uid;
+    document.getElementById('user-tx-history-title').textContent = `${name} — Transactions`;
+    document.getElementById('user-tx-history-sub').textContent = u.email || '';
+    document.querySelectorAll('#user-tx-history-modal .tab-filter').forEach(b => b.classList.remove('active'));
+    const first = document.querySelector('#user-tx-history-modal .tab-filter');
+    if (first) first.classList.add('active');
+    renderUserTxHistoryList();
+    document.getElementById('user-tx-history-modal').classList.add('open');
+  };
+
+  window.closeUserTxHistory = function() {
+    document.getElementById('user-tx-history-modal').classList.remove('open');
+    currentHistoryUid = null;
+  };
+
+  window.filterUserTxHistory = function(filter, btn) {
+    currentHistoryFilter = filter;
+    document.querySelectorAll('#user-tx-history-modal .tab-filter').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderUserTxHistoryList();
+  };
+
+  function renderUserTxHistoryList() {
+    const container = document.getElementById('user-tx-history-list');
+    if (!currentHistoryUid) return;
+    let list = allTx.filter(t => t.userId === currentHistoryUid);
+    if (currentHistoryFilter === 'pending') list = list.filter(t => t.status === 'pending');
+    else if (currentHistoryFilter === 'approved') list = list.filter(t => t.status === 'approved');
+    else if (currentHistoryFilter === 'transfer') list = list.filter(t => t.type === 'transfer');
+    else if (currentHistoryFilter === 'deposit') list = list.filter(t => t.type === 'deposit' || t.type === 'fund');
+    const countEl = document.getElementById('user-tx-history-count');
+    if (countEl) countEl.textContent = `${list.length} transaction${list.length !== 1 ? 's' : ''}`;
+    if (!list.length) {
+      container.innerHTML = `<div style="text-align:center;padding:2.5rem;color:rgba(255,255,255,.3)"><div style="font-size:2rem;margin-bottom:.75rem">📭</div><p style="font-size:.875rem">No transactions found</p></div>`;
+      return;
+    }
+    container.innerHTML = list.map(tx => {
+      const isCredit = tx.type === 'deposit' || tx.type === 'fund';
+      const typeIcon = tx.type === 'deposit' ? '↓' : tx.type === 'fund' ? '★' : '↑';
+      const typeColor = isCredit ? '#4ade80' : '#ff6b7a';
+      const statusCls = `badge-${tx.status}`;
+      const dateDisplay = tx.createdAt ? new Date(tx.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      const timeDisplay = tx.createdAt ? new Date(tx.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+      const isoLocal = tx.createdAt ? (() => {
+        const d = new Date(tx.createdAt);
+        const pad = n => String(n).padStart(2,'0');
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      })() : '';
+      return `
+        <div class="user-tx-row" id="utxrow-${tx.id}">
+          <div style="width:38px;height:38px;border-radius:10px;background:${isCredit?'rgba(0,133,124,.15)':'rgba(201,168,76,.12)'};display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:${typeColor};flex-shrink:0">${typeIcon}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:.855rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tx.description || tx.type || '—'}</div>
+            <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:.1rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+              <span id="utx-date-display-${tx.id}">${dateDisplay}${timeDisplay ? ' · ' + timeDisplay : ''}</span>
+              <span style="font-size:.65rem;color:rgba(255,255,255,.2)">· ${(tx.type||'').toUpperCase()}</span>
+            </div>
+            <div id="utx-date-editor-${tx.id}" style="display:none;margin-top:.5rem;align-items:center;gap:.5rem;flex-wrap:wrap">
+              <input type="datetime-local" class="date-edit-input" id="utx-date-input-${tx.id}" value="${isoLocal}"/>
+              <button class="btn-save-date" onclick="saveUserTxDate('${tx.id}')">Save</button>
+              <button class="btn-cancel-date" onclick="cancelUserTxDateEdit('${tx.id}')">Cancel</button>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:.4rem">
+            <div style="font-weight:700;font-size:.9rem;color:${isCredit?'#4ade80':'rgba(255,255,255,.85)'}">
+              ${isCredit?'+':'-'}$${parseFloat(tx.amount||0).toFixed(2)}
+            </div>
+            <span class="badge ${statusCls}">${tx.status}</span>
+            <button class="btn-edit-date" id="utx-edit-btn-${tx.id}" onclick="editUserTxDate('${tx.id}')">✎ Edit Date</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  window.editUserTxDate = function(txId) {
+    const editor = document.getElementById(`utx-date-editor-${txId}`);
+    const btn = document.getElementById(`utx-edit-btn-${txId}`);
+    if (editor) editor.style.display = 'flex';
+    if (btn) btn.style.display = 'none';
+  };
+
+  window.cancelUserTxDateEdit = function(txId) {
+    const editor = document.getElementById(`utx-date-editor-${txId}`);
+    const btn = document.getElementById(`utx-edit-btn-${txId}`);
+    if (editor) editor.style.display = 'none';
+    if (btn) btn.style.display = '';
+    const tx = allTx.find(t => t.id === txId);
+    if (tx && tx.createdAt) {
+      const d = new Date(tx.createdAt);
+      const pad = n => String(n).padStart(2,'0');
+      const iso = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      const input = document.getElementById(`utx-date-input-${txId}`);
+      if (input) input.value = iso;
+    }
+  };
+
+  window.saveUserTxDate = async function(txId) {
+    const input = document.getElementById(`utx-date-input-${txId}`);
+    if (!input || !input.value) { showToast('Please select a valid date', 'error'); return; }
+    const newTimestamp = new Date(input.value).getTime();
+    if (isNaN(newTimestamp)) { showToast('Invalid date format', 'error'); return; }
+    try {
+      await update(ref(db, `transactions/${txId}`), { createdAt: newTimestamp });
+      const txIndex = allTx.findIndex(t => t.id === txId);
+      if (txIndex !== -1) allTx[txIndex].createdAt = newTimestamp;
+      const displayEl = document.getElementById(`utx-date-display-${txId}`);
+      if (displayEl) {
+        const d = new Date(newTimestamp);
+        const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        displayEl.textContent = `${dateStr} · ${timeStr}`;
+      }
+      cancelUserTxDateEdit(txId);
+      showToast('Transaction date updated ✓ — reflects on user dashboard', 'success');
+    } catch (e) { showToast(e.message, 'error'); }
+  };
+
+
+  // ══════════════════════════════════════════════════
+  // CREATE USER — Firebase REST API (auto-verified)
+  // ══════════════════════════════════════════════════
+  const FB_API_KEY = 'AIzaSyD_yrAE0WCnNPjc_2FZ4ZhLG2AJRFA6V2c';
+
+  function generateAccountNumber() {
+    return Array.from({length: 10}, () => Math.floor(Math.random() * 10)).join('');
+  }
+
+  window.toggleCuPwd = function(id, btn) {
+    const inp = document.getElementById(id);
+    if (!inp) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    btn.style.color = inp.type === 'text' ? 'var(--teal-light)' : 'rgba(255,255,255,.4)';
+  };
+
+  window.createUserAccount = async function() {
+    // ── Collect values ──
+    const firstName       = (document.getElementById('cu-firstName').value || '').trim();
+    const lastName        = (document.getElementById('cu-lastName').value  || '').trim();
+    const email           = (document.getElementById('cu-email').value     || '').trim();
+    const username        = (document.getElementById('cu-username').value  || '').trim();
+    const password        = (document.getElementById('cu-password').value  || '');
+    const confirmPwd      = (document.getElementById('cu-confirmPassword').value || '');
+    const pin             = (document.getElementById('cu-transactionPin').value || '').trim();
+    const dob             = (document.getElementById('cu-dob').value       || '');
+    const gender          = (document.getElementById('cu-gender').value    || '');
+    const accountType     = (document.getElementById('cu-accountType').value || '');
+    const phone           = (document.getElementById('cu-phone').value     || '').trim();
+    const address         = (document.getElementById('cu-address').value   || '').trim();
+    const city            = (document.getElementById('cu-city').value      || '').trim();
+    const state           = (document.getElementById('cu-state').value     || '').trim();
+    const zip             = (document.getElementById('cu-zip').value       || '').trim();
+    const country         = (document.getElementById('cu-country').value   || '');
+    const secQuestion     = (document.getElementById('cu-secQuestion').value || '');
+    const secAnswer       = (document.getElementById('cu-secAnswer').value || '').trim();
+    const initialBalance  = parseFloat(document.getElementById('cu-initialBalance').value) || 0;
+
+    // ── Validation ──
+    if (!firstName)       { showToast('First name is required', 'error'); return; }
+    if (!lastName)        { showToast('Last name is required', 'error'); return; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Valid email address is required', 'error'); return; }
+    if (!username || username.length < 4) { showToast('Username must be at least 4 characters', 'error'); return; }
+    if (!password || password.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
+    if (password !== confirmPwd)          { showToast('Passwords do not match', 'error'); return; }
+    if (!pin || !/^\d{4,6}$/.test(pin)) { showToast('Transaction PIN must be 4–6 digits', 'error'); return; }
+    if (!dob)             { showToast('Date of birth is required', 'error'); return; }
+    if (!accountType)     { showToast('Please select an account type', 'error'); return; }
+
+    // ── UI: loading state ──
+    const btn = document.getElementById('cu-submit-btn');
+    document.getElementById('cu-btn-text').style.display = 'none';
+    document.getElementById('cu-btn-spinner').style.display = 'inline';
+    btn.disabled = true;
+
+    try {
+      // ── STEP 1: Create user via Firebase REST API ──
+      const signUpRes = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FB_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, returnSecureToken: true })
+        }
+      );
+      const signUpData = await signUpRes.json();
+
+      if (signUpData.error) {
+        const errMap = {
+          'EMAIL_EXISTS':            'This email is already registered.',
+          'INVALID_EMAIL':           'Invalid email address format.',
+          'WEAK_PASSWORD : Password should be at least 6 characters': 'Password too weak — use 8+ characters.',
+          'OPERATION_NOT_ALLOWED':   'Email/password sign-up is disabled in Firebase.',
+          'TOO_MANY_ATTEMPTS_TRY_LATER': 'Too many attempts. Please wait and try again.'
+        };
+        const msg = errMap[signUpData.error.message] || ('Firebase error: ' + signUpData.error.message);
+        throw new Error(msg);
+      }
+
+      const newUid   = signUpData.localId;
+      const idToken  = signUpData.idToken;
+
+      // ── STEP 2: Mark emailVerified = true via REST update ──
+      const verifyRes = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${FB_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken, emailVerified: true, returnSecureToken: false })
+        }
+      );
+      const verifyData = await verifyRes.json();
+      if (verifyData.error) {
+        // Non-fatal: account still usable, just log it
+        console.warn('[CreateUser] emailVerified update warning:', verifyData.error.message);
+      }
+
+      // ── STEP 3: Update Firebase Auth displayName ──
+      await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${FB_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken, displayName: `${firstName} ${lastName}`, returnSecureToken: false })
+        }
+      );
+
+      // ── STEP 4: Write user record to Realtime Database ──
+      const accountNumber = generateAccountNumber();
+      const userData = {
+        uid: newUid,
+        firstName, lastName, email, username, phone,
+        dob, gender, accountType,
+        address, city, state, zip, country,
+        secQuestion, secAnswer,
+        transactionPin: pin,
+        accountNumber,
+        balance: initialBalance,
+        role: 'user',
+        verified: true,
+        adminCreated: true,
+        createdAt: Date.now()
+      };
+
+      await set(ref(db, `users/${newUid}`), userData);
+
+      // ── STEP 5: If initial balance > 0, record a fund transaction ──
+      if (initialBalance > 0) {
+        await push(ref(db, 'transactions'), {
+          userId: newUid,
+          userEmail: email,
+          userName: `${firstName} ${lastName}`,
+          type: 'fund',
+          status: 'approved',
+          amount: initialBalance,
+          description: 'Account opening balance',
+          createdAt: Date.now()
+        });
+      }
+
+      // ── STEP 6: Show success modal ──
+      document.getElementById('cu-success-email').textContent = email;
+      document.getElementById('cu-success-acct').textContent  = accountNumber;
+      document.getElementById('cu-success-details').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:.45rem">
+          <div style="display:flex;justify-content:space-between;font-size:.78rem">
+            <span style="color:rgba(255,255,255,.4)">Full Name</span>
+            <span style="font-weight:600">${firstName} ${lastName}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.78rem">
+            <span style="color:rgba(255,255,255,.4)">Account Type</span>
+            <span style="font-weight:600">${accountType}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.78rem">
+            <span style="color:rgba(255,255,255,.4)">Starting Balance</span>
+            <span style="font-weight:600;color:#4ade80">$${initialBalance.toFixed(2)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.78rem">
+            <span style="color:rgba(255,255,255,.4)">Verification</span>
+            <span style="font-weight:600;color:var(--teal-light)">✓ Auto-verified</span>
+          </div>
+        </div>`;
+      document.getElementById('cu-success-modal').classList.add('open');
+
+      // ── Reset form ──
+      ['cu-firstName','cu-lastName','cu-email','cu-username','cu-password','cu-confirmPassword',
+       'cu-transactionPin','cu-dob','cu-phone','cu-address','cu-city','cu-state','cu-zip',
+       'cu-secAnswer','cu-initialBalance'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      ['cu-gender','cu-accountType','cu-secQuestion','cu-country'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.selectedIndex = 0;
+      });
+
+      showToast(`Account created for ${firstName} ${lastName} ✓ — auto-verified`, 'success');
+
+    } catch (e) {
+      showToast(e.message || 'Failed to create account. Please try again.', 'error');
+    } finally {
+      document.getElementById('cu-btn-text').style.display = 'inline';
+      document.getElementById('cu-btn-spinner').style.display = 'none';
+      btn.disabled = false;
+    }
+  };
+
+  window.closeCuSuccessModal = function() {
+    document.getElementById('cu-success-modal').classList.remove('open');
+  };
+
+  window.authSignOut = function() {
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js").then(m => {
+      m.signOut(auth).then(() => window.location.href = 'admin-login.html');
+    });
+  };
+</script>
+
+<script>
+  window.addEventListener('load', () => {
+    document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  });
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('show');
+  }
+
+  const pageTitles = { overview: 'Overview', transactions: 'Transactions', users: 'User Management', fund: 'Fund Account', bank: 'Bank Deposit Details', wallets: 'Crypto Wallets', cards: 'Card Management', loans: 'Loan Applications', createuser: 'Create User Account' };
+
+  function showPage(page) {
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    document.getElementById(`page-${page}`).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const navEl = document.getElementById(`nav-${page}`);
+    if (navEl) navEl.classList.add('active');
+    document.getElementById('topbar-title').textContent = pageTitles[page] || page;
+    closeSidebar();
+    window.scrollTo(0, 0);
+  }
+  window.showPage = showPage;
+
+  let confirmCallback = null;
+  function openConfirm(title, desc, cb) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-desc').textContent = desc;
+    confirmCallback = cb;
+    document.getElementById('modal-confirm-btn').onclick = () => { cb(); closeModal(); };
+    document.getElementById('confirm-modal').classList.add('open');
+  }
+  function closeModal() { document.getElementById('confirm-modal').classList.remove('open'); }
+  window.closeModal = closeModal;
+  window.openConfirm = openConfirm;
+
+  let toastTimer;
+  function showToast(msg, type = 'info') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 4500);
+  }
+  window.showToast = showToast;
+
+  function checkMobile() {
+    const isMobile = window.innerWidth <= 768;
+    document.getElementById('menu-btn').style.display = isMobile ? 'block' : 'none';
+    if (!isMobile) {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('show');
+    }
+  }
+  window.addEventListener('resize', checkMobile);
+  checkMobile();
+</script>
+</body>
+</html>

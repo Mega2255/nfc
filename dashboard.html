@@ -1,0 +1,2344 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Navy Federal – My Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&family=Sora:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy:#002147; --navy-mid:#003366; --teal:#00857C; --teal-light:#00A896;
+      --gold:#C9A84C; --cream:#F8F5F0;
+      --bg:#0d1117; --surface:#161b22; --surface2:#1c2330;
+      --border:rgba(255,255,255,.08); --text:rgba(255,255,255,.9);
+      --text-muted:rgba(255,255,255,.45); --font:'DM Sans',sans-serif;
+    }
+    [data-theme="light"] {
+      --bg:#F0F4F8; --surface:#ffffff; --surface2:#e8eef5;
+      --border:rgba(0,33,71,.1); --text:#002147; --text-muted:rgba(0,33,71,.5);
+    }
+    [data-theme="cream"] {
+      --bg:#F8F5F0; --surface:#ffffff; --surface2:#ede9e2;
+      --border:rgba(0,33,71,.08); --text:#002147; --text-muted:rgba(0,33,71,.45);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; transition:background .3s, color .3s; overflow-x:hidden; }
+    ::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--teal); border-radius:99px; }
+
+    /* PRELOADER */
+    #preloader { position:fixed;inset:0;z-index:9999;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;transition:opacity .7s ease, visibility .7s ease; }
+    #preloader.hide { opacity:0;visibility:hidden;pointer-events:none; }
+    .loader-anchor { width:60px;height:60px;animation:anchorSpin 2s cubic-bezier(.6,0,.4,1) infinite; }
+    @keyframes anchorSpin { 0%{transform:translateY(0) rotate(0deg)} 25%{transform:translateY(-8px) rotate(-10deg)} 75%{transform:translateY(4px) rotate(10deg)} 100%{transform:translateY(0) rotate(0deg)} }
+    .progress-wrap { width:220px;height:2px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden; }
+    .progress-bar { height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:99px;animation:load 2.2s cubic-bezier(.4,0,.2,1) forwards; }
+    @keyframes load { 0%{width:0%} 80%{width:90%} 100%{width:100%} }
+    #site { opacity:0;transition:opacity .5s ease .1s; }
+    #site.show { opacity:1; }
+
+    /* SIDEBAR */
+    .sidebar {
+      position:fixed; left:0; top:0; bottom:0; width:260px;
+      background:var(--surface);
+      border-right:1px solid var(--border);
+      display:flex; flex-direction:column;
+      transition:transform .3s cubic-bezier(.4,0,.2,1), background .3s;
+      z-index:200;
+    }
+    .sidebar.mobile-hidden { transform:translateX(-100%); }
+    .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:199; }
+    .sidebar-overlay.show { display:block; }
+    .sidebar-logo { padding:1.5rem 1.25rem; border-bottom:1px solid var(--border); display:flex;align-items:center;gap:.75rem; }
+    .nav-item {
+      display:flex; align-items:center; gap:.85rem;
+      padding:.75rem 1.25rem; border-radius:10px; margin:.1rem .75rem;
+      cursor:pointer; font-size:.875rem; font-weight:500; color:var(--text-muted);
+      transition:all .2s; text-decoration:none; position:relative;
+    }
+    .nav-item:hover { background:rgba(0,133,124,.1); color:var(--teal-light); }
+    .nav-item.active { background:linear-gradient(135deg,rgba(0,133,124,.2),rgba(0,168,150,.1)); color:var(--teal-light); }
+    .nav-item.active::before { content:''; position:absolute; left:0; top:20%; bottom:20%; width:3px; background:var(--teal); border-radius:0 3px 3px 0; margin-left:-.75rem; }
+    .nav-badge { background:var(--gold); color:var(--navy); font-size:.65rem; font-weight:700; padding:.15rem .45rem; border-radius:99px; margin-left:auto; }
+
+    /* TOP BAR */
+    .topbar {
+      height:64px; background:var(--surface); border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 1.5rem; position:sticky; top:0; z-index:100;
+      transition:background .3s;
+    }
+
+    /* MAIN */
+    .main-content { margin-left:260px; min-height:100vh; transition:margin .3s; }
+    @media(max-width:768px) { .main-content { margin-left:0; } .sidebar { transform:translateX(-100%); } .sidebar.open { transform:translateX(0); } }
+
+    /* CARDS */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.5rem; transition:background .3s; }
+    .card-sm { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.25rem; }
+
+    /* BALANCE CARD */
+    .balance-card {
+      background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 50%,#004d3a 100%);
+      border:1px solid rgba(0,133,124,.3); border-radius:20px; padding:2rem;
+      position:relative; overflow:hidden;
+    }
+    .balance-card::before {
+      content:''; position:absolute; top:-60px; right:-60px;
+      width:220px; height:220px; border-radius:50%;
+      background:radial-gradient(circle,rgba(0,133,124,.35) 0%,transparent 70%);
+    }
+    .balance-card::after {
+      content:''; position:absolute; bottom:-40px; left:-40px;
+      width:180px; height:180px; border-radius:50%;
+      background:radial-gradient(circle,rgba(201,168,76,.18) 0%,transparent 70%);
+    }
+    /* QUICK ACTIONS */
+    .action-btn {
+      display:flex; flex-direction:column; align-items:center; gap:.5rem;
+      padding:1.1rem .75rem; border-radius:16px; cursor:pointer;
+      background:var(--surface2); border:1px solid var(--border);
+      transition:all .25s; color:var(--text);
+    }
+    .action-btn:hover { border-color:var(--teal); transform:translateY(-4px); box-shadow:0 10px 30px rgba(0,133,124,.25); }
+    /* TRANSACTIONS */
+    .tx-item { display:flex; align-items:center; gap:1rem; padding:.9rem 0; border-bottom:1px solid var(--border); }
+    .tx-item:last-child { border-bottom:none; }
+    .tx-icon { width:44px; height:44px; border-radius:12px; display:flex;align-items:center;justify-content:center; flex-shrink:0; }
+    .status-badge { padding:.2rem .65rem; border-radius:99px; font-size:.72rem; font-weight:600; }
+    .status-pending { background:rgba(201,168,76,.15); color:var(--gold); }
+    .status-approved { background:rgba(0,133,124,.15); color:var(--teal-light); }
+    .status-declined { background:rgba(220,53,69,.15); color:#ff6b7a; }
+
+    /* MODAL */
+    .modal { position:fixed; inset:0; z-index:500; display:none; align-items:center; justify-content:center; padding:1rem; }
+    .modal.open { display:flex; }
+    .modal-overlay { position:absolute; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(6px); }
+    .modal-box { position:relative; z-index:1; background:var(--surface); border:1px solid var(--border); border-radius:24px; padding:2rem; width:100%; max-width:500px; max-height:92vh; overflow-y:auto; }
+    .input-field { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:.75rem 1rem; color:var(--text); font-size:.9rem; font-family:var(--font); transition:border-color .2s; }
+    .input-field:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(0,133,124,.1); }
+    .input-field::placeholder { color:var(--text-muted); }
+    select.input-field option { background:var(--surface); }
+    .btn-primary { background:linear-gradient(135deg,var(--teal),var(--teal-light)); color:white; font-weight:600; padding:.85rem 1.5rem; border-radius:12px; border:none; cursor:pointer; font-size:.9rem; font-family:var(--font); transition:all .2s; }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,133,124,.45); }
+    .btn-ghost { background:var(--surface2); color:var(--text); font-weight:500; padding:.85rem 1.5rem; border-radius:12px; border:1px solid var(--border); cursor:pointer; font-size:.9rem; font-family:var(--font); transition:all .2s; }
+    .btn-ghost:hover { border-color:var(--teal); color:var(--teal-light); }
+
+    /* TOAST */
+    .toast { position:fixed; top:1.5rem; right:1.5rem; z-index:9999; padding:.9rem 1.5rem; border-radius:14px; font-size:.88rem; font-weight:500; transform:translateX(120%); transition:transform .4s cubic-bezier(.4,0,.2,1); max-width:340px; display:flex; align-items:center; gap:.75rem; }
+    .toast.show { transform:translateX(0); }
+    .toast.success { background:linear-gradient(135deg,#00857C,#00A896); color:white; box-shadow:0 8px 24px rgba(0,133,124,.4); }
+    .toast.error { background:linear-gradient(135deg,#c0392b,#e74c3c); color:white; box-shadow:0 8px 24px rgba(220,53,69,.4); }
+    .toast.info { background:linear-gradient(135deg,var(--navy),var(--navy-mid)); color:white; border:1px solid rgba(201,168,76,.3); box-shadow:0 8px 24px rgba(0,33,71,.5); }
+
+    /* PAGE SECTIONS */
+    .page-section { display:none; } .page-section.active { display:block; }
+
+    /* CRYPTO WALLET CARD */
+    .crypto-card { background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:1.25rem; cursor:pointer; transition:all .2s; }
+    .crypto-card:hover, .crypto-card.selected { border-color:var(--teal); background:rgba(0,133,124,.08); box-shadow:0 4px 16px rgba(0,133,124,.15); }
+
+    /* LANGUAGE / OPTION BUTTONS */
+    .lang-option { padding:.65rem 1rem; border-radius:10px; cursor:pointer; font-size:.84rem; font-weight:500; border:1.5px solid var(--border); transition:all .2s; background:var(--surface2); color:var(--text-muted); }
+    .lang-option.selected, .lang-option:hover { border-color:var(--teal); background:rgba(0,133,124,.1); color:var(--teal-light); }
+
+    /* TRANSFER TYPE CARD */
+    .transfer-type-card {
+      border:2px solid var(--border); border-radius:16px; padding:1.5rem;
+      cursor:pointer; transition:all .25s; background:var(--surface2);
+      text-align:center;
+    }
+    .transfer-type-card:hover, .transfer-type-card.selected {
+      border-color:var(--teal); background:rgba(0,133,124,.08);
+      box-shadow:0 4px 20px rgba(0,133,124,.2);
+      transform:translateY(-2px);
+    }
+
+    /* DEPOSIT TYPE CARD */
+    .deposit-type-card {
+      border:2px solid var(--border); border-radius:18px; padding:1.75rem;
+      cursor:pointer; transition:all .25s; background:var(--surface2);
+      display:flex; flex-direction:column; align-items:center; gap:.75rem;
+    }
+    .deposit-type-card:hover {
+      border-color:var(--teal); background:rgba(0,133,124,.07);
+      box-shadow:0 6px 24px rgba(0,133,124,.2);
+      transform:translateY(-3px);
+    }
+
+    /* CHART */
+    .chart-bar { background:linear-gradient(180deg,var(--teal),rgba(0,133,124,.2)); border-radius:4px 4px 0 0; transition:height .8s ease; }
+
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in { animation:fadeInUp .4s ease forwards; }
+    .fade-in-delay-1 { animation:fadeInUp .4s .1s ease both; }
+    .fade-in-delay-2 { animation:fadeInUp .4s .2s ease both; }
+    .fade-in-delay-3 { animation:fadeInUp .4s .3s ease both; }
+
+    /* BLOCKED / UNVERIFIED */
+    .blocked-screen { position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.95);display:none;align-items:center;justify-content:center;flex-direction:column;gap:1.5rem;text-align:center;padding:2rem; }
+    .blocked-screen.show { display:flex; }
+    .unverified-screen { position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.97);display:none;align-items:center;justify-content:center;flex-direction:column;gap:1.5rem;text-align:center;padding:2rem; }
+    .unverified-screen.show { display:flex; }
+
+    /* ACCOUNT NUMBER */
+    .acct-number-full {
+      font-family:'Space Grotesk',monospace; font-size:1.1rem; letter-spacing:.15em;
+      color:white; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+      border-radius:10px; padding:.5rem 1rem; display:inline-block;
+      cursor:pointer; transition:background .2s; user-select:all;
+    }
+    .acct-number-full:hover { background:rgba(255,255,255,.13); }
+    .copy-hint { font-size:.68rem; color:rgba(255,255,255,.35); margin-top:.3rem; }
+
+    /* STAT MINI CARDS */
+    .mini-stat { background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:1.25rem; }
+
+    /* QR CODE */
+    #qr-container canvas, #qr-container img { border-radius:8px; }
+
+    /* SECTION DIVIDER */
+    .section-divider { display:flex;align-items:center;gap:1rem;margin:1.5rem 0; }
+    .section-divider::before, .section-divider::after { content:'';flex:1;height:1px;background:var(--border); }
+
+    /* BANK DETAIL ROW */
+    .bank-detail-row { display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid var(--border); }
+    .bank-detail-row:last-child { border-bottom:none; }
+
+    /* STEP INDICATOR */
+    .step-dot { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0; }
+    .step-dot.active { background:var(--teal);color:white; }
+    .step-dot.done { background:rgba(0,133,124,.2);color:var(--teal-light); }
+    .step-dot.inactive { background:var(--surface2);color:var(--text-muted); }
+
+    @media(max-width:640px) {
+      .balance-grid { grid-template-columns:1fr !important; }
+      .modal-box { padding:1.5rem; }
+    }
+
+    /* ── MOBILE RESPONSIVE ── */
+    @media(max-width:768px) {
+      .balance-card { padding:1.25rem; border-radius:16px; }
+      .balance-card::before { width:160px; height:160px; top:-40px; right:-40px; }
+      .balance-card::after  { width:120px; height:120px; bottom:-30px; left:-30px; }
+      #main-balance { font-size:2rem !important; }
+      .action-btn { padding:.75rem .5rem; border-radius:12px; }
+      .action-btn span { font-size:.7rem !important; }
+      .card { padding:1rem; border-radius:14px; }
+      .card-sm { padding:.9rem; border-radius:10px; }
+      .mini-stat { padding:.9rem; border-radius:12px; }
+      .tx-icon { width:38px; height:38px; border-radius:10px; }
+      .topbar { padding:0 1rem; height:56px; }
+      .sidebar { width:230px; }
+      .topbar-secured { display:none !important; }
+      .topbar-date { display:none !important; }
+    }
+
+    @media(max-width:480px) {
+      .balance-card { padding:1rem; }
+      #main-balance { font-size:1.7rem !important; }
+      .action-btn { padding:.6rem .35rem; }
+      .action-btn span { font-size:.65rem !important; }
+      .card { padding:.85rem; border-radius:12px; }
+      .card-sm { padding:.75rem; }
+      .tx-icon { width:34px; height:34px; font-size:.9rem !important; }
+      .tx-item { gap:.65rem; padding:.7rem 0; }
+      .status-badge { font-size:.65rem; padding:.15rem .45rem; }
+      .main-content > div > div { padding:.85rem !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- PRELOADER -->
+<div id="preloader">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem">
+    <svg class="loader-anchor" viewBox="0 0 60 60" fill="none">
+      <circle cx="30" cy="12" r="7" stroke="#C9A84C" stroke-width="2.5"/>
+      <line x1="30" y1="19" x2="30" y2="52" stroke="#00857C" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M16 38 Q30 52 44 38" stroke="#00857C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <circle cx="16" cy="38" r="3" fill="#C9A84C"/>
+      <circle cx="44" cy="38" r="3" fill="#C9A84C"/>
+    </svg>
+    <div style="font-family:'Playfair Display',serif;color:white;font-size:1.1rem;letter-spacing:.15em">Navy Federal</div>
+    <div style="font-size:.65rem;letter-spacing:.3em;color:#C9A84C">CREDIT UNION</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem">
+    <div class="progress-wrap"><div class="progress-bar"></div></div>
+    <div style="font-size:.7rem;letter-spacing:.2em;color:rgba(255,255,255,.4)">LOADING YOUR ACCOUNT</div>
+  </div>
+</div>
+
+<!-- BLOCKED SCREEN -->
+<div class="blocked-screen" id="blocked-screen">
+  <div style="width:80px;height:80px;background:rgba(220,53,69,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(220,53,69,.3)">
+    <svg width="36" height="36" fill="none" stroke="#ff6b7a" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+  </div>
+  <div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;color:white;margin-bottom:.5rem">Account Blocked</h2>
+    <p style="color:rgba(255,255,255,.5);max-width:400px;line-height:1.7">Your account has been temporarily restricted. Please contact our customer care team or visit any Navy Federal branch to resolve this issue.</p>
+  </div>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center">
+    <a href="tel:+18883426788" class="btn-primary" style="text-decoration:none;padding:.85rem 2rem">📞 Call Support</a>
+    <button onclick="authSignOut()" class="btn-ghost">Sign Out</button>
+  </div>
+</div>
+
+<!-- UNVERIFIED SCREEN -->
+<div class="unverified-screen" id="unverified-screen">
+  <div style="width:80px;height:80px;background:rgba(201,168,76,.12);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(201,168,76,.3)">
+    <svg width="36" height="36" fill="none" stroke="#C9A84C" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+  </div>
+  <div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;color:white;margin-bottom:.5rem">Verify Your Email</h2>
+    <p style="color:rgba(255,255,255,.5);max-width:440px;line-height:1.7">Your account is not yet verified. Please check your inbox and click the verification link we sent to <strong id="unverified-email" style="color:rgba(255,255,255,.8)">your email</strong>.</p>
+  </div>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center">
+    <button onclick="resendVerification()" class="btn-primary" style="padding:.85rem 2rem">📧 Resend Verification Email</button>
+    <button onclick="authSignOut()" class="btn-ghost">Sign Out</button>
+  </div>
+  <p style="font-size:.75rem;color:rgba(255,255,255,.3);max-width:380px">Already verified? <a href="javascript:location.reload()" style="color:var(--teal-light)">Refresh this page</a> to access your dashboard.</p>
+</div>
+
+<div id="site">
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="0 0 60 60" fill="none">
+        <circle cx="30" cy="12" r="7" stroke="#C9A84C" stroke-width="2.5"/>
+        <line x1="30" y1="19" x2="30" y2="52" stroke="#00A896" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M16 38 Q30 52 44 38" stroke="#00A896" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <circle cx="16" cy="38" r="3" fill="#C9A84C"/>
+        <circle cx="44" cy="38" r="3" fill="#C9A84C"/>
+      </svg>
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:.9rem;color:var(--text);letter-spacing:.04em">Navy Federal</div>
+        <div style="font-size:.58rem;letter-spacing:.2em;color:var(--gold);font-weight:500">CREDIT UNION</div>
+      </div>
+    </div>
+    <nav style="flex:1;overflow-y:auto;padding:.75rem 0">
+      <div style="padding:.5rem 1.25rem .25rem;font-size:.65rem;letter-spacing:.15em;color:var(--text-muted);font-weight:600">MAIN</div>
+      <a class="nav-item active" onclick="showPage('home')" id="nav-home">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span data-i18n="nav_dashboard">Dashboard</span>
+      </a>
+      <a class="nav-item" onclick="showPage('transfer')" id="nav-transfer">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        <span data-i18n="nav_send">Send Money</span>
+      </a>
+      <a class="nav-item" onclick="showPage('deposit')" id="nav-deposit">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+        <span data-i18n="nav_deposit">Deposit</span>
+      </a>
+      <a class="nav-item" onclick="showPage('history')" id="nav-history">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span data-i18n="nav_history">History</span>
+        <span class="nav-badge" id="pending-badge" style="display:none">!</span>
+      </a>
+      <a class="nav-item" onclick="showPage('cards')" id="nav-cards">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <span>Cards</span>
+      </a>
+      <a class="nav-item" onclick="showPage('loans')" id="nav-loans">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span>Loans</span>
+      </a>
+      <div style="padding:.75rem 1.25rem .25rem;font-size:.65rem;letter-spacing:.15em;color:var(--text-muted);font-weight:600;margin-top:.5rem">ACCOUNT</div>
+      <a class="nav-item" onclick="showPage('settings')" id="nav-settings">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span data-i18n="nav_settings">Settings</span>
+      </a>
+    </nav>
+    <div style="padding:1rem;border-top:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--navy-mid));display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:.9rem" id="user-avatar">?</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.85rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="sidebar-name">Loading…</div>
+          <div style="font-size:.72rem;color:var(--text-muted)" id="sidebar-account">NF••••••••</div>
+        </div>
+        <button onclick="authSignOut()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:.25rem" title="Sign Out">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:.75rem;flex:1;min-width:0;overflow:hidden">
+        <button id="menu-btn" onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:var(--text);display:none;flex-shrink:0">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div style="min-width:0;overflow:hidden">
+          <div style="font-size:.78rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="topbar-greeting">Good morning</div>
+          <div style="font-size:1rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="topbar-name">Loading…</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem;flex-shrink:0">
+        <!-- Security badge — hidden on mobile -->
+        <div class="topbar-secured" style="display:flex;align-items:center;gap:.4rem;background:rgba(0,133,124,.1);border:1px solid rgba(0,133,124,.2);border-radius:8px;padding:.35rem .75rem">
+          <svg width="12" height="12" fill="none" stroke="var(--teal-light)" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span style="font-size:.72rem;color:var(--teal-light);font-weight:600">SECURED</span>
+        </div>
+        <!-- Date — hidden on mobile -->
+        <div class="topbar-date" style="font-size:.78rem;color:var(--text-muted);background:var(--surface2);padding:.4rem .85rem;border-radius:8px;border:1px solid var(--border)" id="topbar-date"></div>
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--navy-mid));display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:.85rem;flex-shrink:0" id="top-avatar">?</div>
+      </div>
+    </header>
+
+    <div style="padding:1.25rem" id="page-content">
+
+      <!-- ══════════════ HOME PAGE ══════════════ -->
+      <div class="page-section active" id="page-home">
+        <!-- Balance Card -->
+        <div class="balance-card fade-in" style="margin-bottom:1.5rem">
+          <div style="position:relative;z-index:1">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem">
+              <div>
+                <p style="color:rgba(255,255,255,.5);font-size:.75rem;font-weight:600;letter-spacing:.12em;margin-bottom:.6rem">TOTAL AVAILABLE BALANCE</p>
+                <div style="font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:700;color:white;letter-spacing:-.03em;line-height:1" id="main-balance">$0.00</div>
+                <div style="display:flex;align-items:center;gap:.75rem;margin-top:.6rem">
+                  <p style="color:rgba(255,255,255,.35);font-size:.78rem">Acct: <span id="main-acct-num" style="color:rgba(255,255,255,.65);font-weight:500;font-family:'Space Grotesk',monospace">NF••••••••</span></p>
+                  <span style="color:rgba(255,255,255,.2)">•</span>
+                  <span id="main-acct-type" style="color:rgba(255,255,255,.35);font-size:.78rem">Checking</span>
+                </div>
+              </div>
+              <div style="text-align:right">
+                <div style="background:rgba(0,133,124,.3);border:1px solid rgba(0,133,124,.5);border-radius:10px;padding:.45rem 1rem;display:inline-block;margin-bottom:.75rem">
+                  <span style="color:#4ade80;font-size:.78rem;font-weight:700">● ACTIVE</span>
+                </div>
+                <div>
+                  <svg width="44" height="28" viewBox="0 0 44 28" fill="none">
+                    <rect width="44" height="28" rx="4" fill="none"/>
+                    <circle cx="16" cy="14" r="10" fill="rgba(201,168,76,.5)"/>
+                    <circle cx="28" cy="14" r="10" fill="rgba(201,168,76,.25)"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.75rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.1)">
+              <div>
+                <div style="color:rgba(255,255,255,.35);font-size:.68rem;font-weight:600;letter-spacing:.08em;margin-bottom:.35rem">TOTAL IN</div>
+                <div style="color:#4ade80;font-weight:700;font-size:1.05rem" id="total-in">$0.00</div>
+              </div>
+              <div>
+                <div style="color:rgba(255,255,255,.35);font-size:.68rem;font-weight:600;letter-spacing:.08em;margin-bottom:.35rem">TOTAL OUT</div>
+                <div style="color:#ff6b7a;font-weight:700;font-size:1.05rem" id="total-out">$0.00</div>
+              </div>
+              <div>
+                <div style="color:rgba(255,255,255,.35);font-size:.68rem;font-weight:600;letter-spacing:.08em;margin-bottom:.35rem">PENDING</div>
+                <div style="color:var(--gold);font-weight:700;font-size:1.05rem" id="total-pending">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Account Number Card -->
+        <div class="card fade-in" style="margin-bottom:1.5rem;background:linear-gradient(135deg,rgba(0,133,124,.08),rgba(201,168,76,.04));border-color:rgba(0,133,124,.2)">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+            <div>
+              <p style="font-size:.7rem;letter-spacing:.12em;color:var(--text-muted);font-weight:600;margin-bottom:.5rem">YOUR ACCOUNT NUMBER</p>
+              <div id="acct-num-display" class="acct-number-full" onclick="copyAccountNumber()" title="Click to copy">––––––––––</div>
+              <div class="copy-hint">Click to copy</div>
+            </div>
+            <div style="text-align:right">
+              <p style="font-size:.7rem;letter-spacing:.1em;color:var(--text-muted);font-weight:600;margin-bottom:.5rem">ACCOUNT TYPE</p>
+              <div style="font-size:.95rem;font-weight:600;color:var(--text)" id="acct-type-display">—</div>
+              <div style="font-size:.72rem;color:var(--text-muted);margin-top:.25rem">Member since <span id="member-since">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem" class="fade-in-delay-1">
+          <div class="action-btn" onclick="showPage('transfer')">
+            <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,rgba(0,133,124,.25),rgba(0,168,150,.15));display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,133,124,.3)">
+              <svg width="22" height="22" fill="none" stroke="#00A896" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </div>
+            <span style="font-size:.78rem;font-weight:600;color:var(--text)" data-i18n="act_send">Send</span>
+          </div>
+          <div class="action-btn" onclick="showPage('deposit')">
+            <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.08));display:flex;align-items:center;justify-content:center;border:1px solid rgba(201,168,76,.25)">
+              <svg width="22" height="22" fill="none" stroke="#C9A84C" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+            </div>
+            <span style="font-size:.78rem;font-weight:600;color:var(--text)" data-i18n="act_deposit">Deposit</span>
+          </div>
+          <div class="action-btn" onclick="showPage('history')">
+            <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,rgba(0,33,71,.4),rgba(0,51,102,.3));display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.1)">
+              <svg width="22" height="22" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+            </div>
+            <span style="font-size:.78rem;font-weight:600;color:var(--text)" data-i18n="act_history">History</span>
+          </div>
+          <div class="action-btn" onclick="showPage('settings')">
+            <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,rgba(0,133,124,.15),rgba(0,33,71,.3));display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,133,124,.2)">
+              <svg width="22" height="22" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+            <span style="font-size:.78rem;font-weight:600;color:var(--text)" data-i18n="act_settings">Settings</span>
+          </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="card fade-in-delay-2">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+            <div>
+              <h3 style="font-weight:700;font-size:1rem;color:var(--text)" data-i18n="recent_activity">Recent Activity</h3>
+              <p style="font-size:.75rem;color:var(--text-muted);margin-top:.15rem" data-i18n="last_5">Last 5 transactions</p>
+            </div>
+            <button onclick="showPage('history')" style="background:rgba(0,133,124,.1);border:1px solid rgba(0,133,124,.2);cursor:pointer;color:var(--teal-light);font-size:.82rem;font-weight:600;font-family:var(--font);border-radius:8px;padding:.4rem .9rem;" data-i18n="view_all">View all →</button>
+          </div>
+          <div id="recent-tx">
+            <div style="text-align:center;padding:2.5rem;color:var(--text-muted)">
+              <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto .75rem"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              <p style="font-size:.875rem" data-i18n="no_transactions">No transactions yet</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════ SEND MONEY PAGE ══════════════ -->
+      <div class="page-section" id="page-transfer">
+        <div style="max-width:680px">
+          <div style="margin-bottom:1.75rem">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--text)" data-i18n="send_money">Send Money</h2>
+            <p style="color:var(--text-muted);font-size:.875rem;margin-top:.3rem" data-i18n="send_subtitle">Choose a transfer method below</p>
+          </div>
+
+          <!-- Balance pill -->
+          <div style="background:rgba(0,133,124,.08);border:1px solid rgba(0,133,124,.2);border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;align-items:center;gap:.6rem">
+              <svg width="16" height="16" fill="none" stroke="var(--teal-light)" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              <span style="color:var(--text-muted);font-size:.85rem" data-i18n="available_balance">Available Balance</span>
+            </div>
+            <span style="font-weight:700;font-size:1.15rem;color:var(--teal-light)" id="transfer-balance">$0.00</span>
+          </div>
+
+          <!-- Transfer Type Selection -->
+          <div id="transfer-type-view">
+            <p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;color:var(--text-muted);margin-bottom:1rem" data-i18n="select_transfer_type">SELECT TRANSFER TYPE</p>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem">
+              <!-- Domestic -->
+              <div class="transfer-type-card" onclick="selectTransferType('domestic')">
+                <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,rgba(0,133,124,.2),rgba(0,168,150,.1));display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;border:1px solid rgba(0,133,124,.25)">
+                  <svg width="26" height="26" fill="none" stroke="#00A896" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                </div>
+                <div style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:.3rem" data-i18n="domestic_transfer">Domestic Transfer</div>
+                <div style="font-size:.78rem;color:var(--text-muted)" data-i18n="domestic_desc">Within the US — Account & routing number</div>
+              </div>
+              <!-- International -->
+              <div class="transfer-type-card" onclick="selectTransferType('international')">
+                <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.08));display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;border:1px solid rgba(201,168,76,.25)">
+                  <svg width="26" height="26" fill="none" stroke="#C9A84C" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <div style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:.3rem" data-i18n="international_transfer">International Wire</div>
+                <div style="font-size:.78rem;color:var(--text-muted)" data-i18n="international_desc">Global transfers — IBAN, SWIFT & more</div>
+              </div>
+            </div>
+
+            <!-- More transfer types -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem">
+              <div class="transfer-type-card" onclick="selectTransferType('zelle')">
+                <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(111,66,193,.2),rgba(111,66,193,.08));display:flex;align-items:center;justify-content:center;margin:0 auto .6rem;border:1px solid rgba(111,66,193,.3)">
+                  <span style="font-size:1.2rem">⚡</span>
+                </div>
+                <div style="font-weight:600;font-size:.88rem;color:var(--text)" data-i18n="zelle">Zelle</div>
+                <div style="font-size:.72rem;color:var(--text-muted);margin-top:.25rem" data-i18n="zelle_desc">Instant US transfer</div>
+              </div>
+              <div class="transfer-type-card" onclick="selectTransferType('ach')">
+                <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(0,123,255,.15),rgba(0,123,255,.05));display:flex;align-items:center;justify-content:center;margin:0 auto .6rem;border:1px solid rgba(0,123,255,.25)">
+                  <span style="font-size:1.2rem">🏦</span>
+                </div>
+                <div style="font-weight:600;font-size:.88rem;color:var(--text)">ACH</div>
+                <div style="font-size:.72rem;color:var(--text-muted);margin-top:.25rem" data-i18n="ach_desc">Bank-to-bank, 1–3 days</div>
+              </div>
+              <div class="transfer-type-card" onclick="selectTransferType('wire')">
+                <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(0,133,124,.15),rgba(0,133,124,.05));display:flex;align-items:center;justify-content:center;margin:0 auto .6rem;border:1px solid rgba(0,133,124,.25)">
+                  <span style="font-size:1.2rem">🔗</span>
+                </div>
+                <div style="font-weight:600;font-size:.88rem;color:var(--text)">Wire</div>
+                <div style="font-size:.72rem;color:var(--text-muted);margin-top:.25rem" data-i18n="wire_desc">Same-day, high value</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transfer Form -->
+          <div id="transfer-form-view" style="display:none">
+            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem">
+              <button onclick="backToTransferTypes()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.5rem .85rem;cursor:pointer;color:var(--text-muted);font-family:var(--font);font-size:.85rem;display:flex;align-items:center;gap:.4rem">
+                ← <span data-i18n="back">Back</span>
+              </button>
+              <div>
+                <div style="font-weight:700;font-size:1rem;color:var(--text)" id="transfer-form-title">Transfer</div>
+                <div style="font-size:.75rem;color:var(--text-muted)" id="transfer-form-subtitle"></div>
+              </div>
+            </div>
+            <div class="card">
+              <div style="display:flex;flex-direction:column;gap:1rem" id="transfer-fields">
+                <!-- Fields injected by JS -->
+              </div>
+              <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border)">
+                <button onclick="submitTransfer()" class="btn-primary" style="width:100%" data-i18n="submit_transfer">Submit Transfer Request</button>
+                <p style="font-size:.75rem;color:var(--text-muted);text-align:center;margin-top:.75rem" data-i18n="transfer_note">Transfers are pending until approved by our compliance team.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════ DEPOSIT PAGE ══════════════ -->
+      <div class="page-section" id="page-deposit">
+        <div style="max-width:640px">
+          <div style="margin-bottom:1.75rem">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--text)" data-i18n="deposit">Deposit</h2>
+            <p style="color:var(--text-muted);font-size:.875rem;margin-top:.3rem" data-i18n="deposit_subtitle">Choose how you'd like to fund your account</p>
+          </div>
+
+          <!-- Step 1: Choose method -->
+          <div id="deposit-method-select">
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem">
+              <!-- Bank Transfer -->
+              <div class="deposit-type-card" onclick="selectDepositMethod('bank')">
+                <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,rgba(0,123,255,.15),rgba(0,168,150,.1));display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,123,255,.3)">
+                  <svg width="30" height="30" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                </div>
+                <div style="font-weight:700;font-size:1.05rem;color:var(--text)" data-i18n="bank_transfer">Bank Transfer</div>
+                <div style="font-size:.78rem;color:var(--text-muted);text-align:center;line-height:1.5" data-i18n="bank_transfer_desc">Deposit via wire or bank transfer using our account details</div>
+                <div style="background:rgba(0,133,124,.1);border:1px solid rgba(0,133,124,.2);border-radius:8px;padding:.35rem .85rem">
+                  <span style="font-size:.72rem;color:var(--teal-light);font-weight:600">1–3 BUSINESS DAYS</span>
+                </div>
+              </div>
+              <!-- Crypto -->
+              <div class="deposit-type-card" onclick="selectDepositMethod('crypto')">
+                <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,rgba(247,147,26,.15),rgba(98,126,234,.1));display:flex;align-items:center;justify-content:center;border:1px solid rgba(247,147,26,.3)">
+                  <svg width="30" height="30" fill="none" stroke="#F7931A" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.5 8h4.5a2 2 0 0 1 0 4H9.5M9.5 12h5a2 2 0 0 1 0 4H9.5M9.5 8v10"/></svg>
+                </div>
+                <div style="font-weight:700;font-size:1.05rem;color:var(--text)" data-i18n="crypto_deposit">Crypto Deposit</div>
+                <div style="font-size:.78rem;color:var(--text-muted);text-align:center;line-height:1.5" data-i18n="crypto_deposit_desc">Deposit using Bitcoin, Ethereum, or Tether</div>
+                <div style="background:rgba(247,147,26,.1);border:1px solid rgba(247,147,26,.2);border-radius:8px;padding:.35rem .85rem">
+                  <span style="font-size:.72rem;color:#F7931A;font-weight:600">BLOCKCHAIN VERIFIED</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bank Transfer Details -->
+          <div id="deposit-bank-view" style="display:none">
+            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem">
+              <button onclick="backToDepositSelect()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.5rem .85rem;cursor:pointer;color:var(--text-muted);font-family:var(--font);font-size:.85rem;display:flex;align-items:center;gap:.4rem">← <span data-i18n="back">Back</span></button>
+              <div>
+                <div style="font-weight:700;font-size:1rem;color:var(--text)" data-i18n="bank_transfer_details">Bank Transfer Details</div>
+                <div style="font-size:.75rem;color:var(--text-muted)" data-i18n="send_to_account">Send funds to the account details below</div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:1.25rem">
+              <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border)">
+                <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(0,123,255,.2),rgba(0,133,124,.1));display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,123,255,.25)">
+                  <svg width="20" height="20" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                </div>
+                <div>
+                  <div style="font-weight:700;color:var(--text)" data-i18n="bank_details_title">Navy Federal Receiving Account</div>
+                  <div style="font-size:.75rem;color:var(--text-muted)" data-i18n="admin_configured">Configured by bank administration</div>
+                </div>
+              </div>
+              <div id="bank-details-list">
+                <div style="text-align:center;padding:2rem;color:var(--text-muted)">
+                  <div style="width:48px;height:48px;border-radius:50%;background:rgba(201,168,76,.1);display:flex;align-items:center;justify-content:center;margin:0 auto .75rem">
+                    <svg width="22" height="22" fill="none" stroke="#C9A84C" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  </div>
+                  <p style="font-size:.85rem" data-i18n="bank_details_pending">Bank details not yet configured. Please check back later or contact support.</p>
+                </div>
+              </div>
+            </div>
+            <!-- After sending -->
+            <div class="card" style="border-color:rgba(0,133,124,.2);background:rgba(0,133,124,.04)">
+              <p style="font-weight:600;font-size:.9rem;color:var(--text);margin-bottom:1rem" data-i18n="after_transfer">After Completing Your Transfer</p>
+              <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.25rem">
+                <div>
+                  <label style="font-size:.8rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem" data-i18n="amount_sent">Amount Sent (USD)</label>
+                  <div style="position:relative">
+                    <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:600">$</span>
+                    <input id="bank-dep-amount" type="number" class="input-field" style="padding-left:2rem" placeholder="0.00" min="0.01" step="0.01"/>
+                  </div>
+                </div>
+                <div>
+                  <label style="font-size:.8rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem" data-i18n="reference_note">Reference / Transaction Note (optional)</label>
+                  <input id="bank-dep-ref" class="input-field" placeholder="e.g. TXN123456"/>
+                </div>
+              </div>
+              <button onclick="submitBankDeposit()" class="btn-primary" style="width:100%" data-i18n="i_have_sent">✓ I Have Sent the Funds</button>
+            </div>
+          </div>
+
+          <!-- Crypto Selection -->
+          <div id="deposit-crypto-select-view" style="display:none">
+            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem">
+              <button onclick="backToDepositSelect()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.5rem .85rem;cursor:pointer;color:var(--text-muted);font-family:var(--font);font-size:.85rem;display:flex;align-items:center;gap:.4rem">← <span data-i18n="back">Back</span></button>
+              <div>
+                <div style="font-weight:700;font-size:1rem;color:var(--text)" data-i18n="select_crypto">Select Cryptocurrency</div>
+                <div style="font-size:.75rem;color:var(--text-muted)" data-i18n="select_crypto_desc">Choose which coin you're sending</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(1,1fr);gap:.85rem;margin-bottom:1.5rem">
+              <!-- Only BTC, ETH, USDT per requirements -->
+              <div class="crypto-card" id="cc-btc" onclick="selectCryptoCard('btc','Bitcoin','BTC','₿','#F7931A')">
+                <div style="display:flex;align-items:center;gap:1rem">
+                  <div style="width:48px;height:48px;border-radius:14px;background:#F7931A22;border:1px solid #F7931A44;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#F7931A;font-weight:700">₿</div>
+                  <div style="flex:1">
+                    <div style="font-weight:700;font-size:.95rem;color:var(--text)">Bitcoin</div>
+                    <div style="font-size:.75rem;color:var(--text-muted)">BTC — Most popular</div>
+                  </div>
+                  <div id="cc-btc-status" style="font-size:.72rem;color:var(--text-muted)">Loading…</div>
+                </div>
+              </div>
+              <div class="crypto-card" id="cc-eth" onclick="selectCryptoCard('eth','Ethereum','ETH','Ξ','#627EEA')">
+                <div style="display:flex;align-items:center;gap:1rem">
+                  <div style="width:48px;height:48px;border-radius:14px;background:#627EEA22;border:1px solid #627EEA44;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#627EEA;font-weight:700">Ξ</div>
+                  <div style="flex:1">
+                    <div style="font-weight:700;font-size:.95rem;color:var(--text)">Ethereum</div>
+                    <div style="font-size:.75rem;color:var(--text-muted)">ETH — ERC-20 network</div>
+                  </div>
+                  <div id="cc-eth-status" style="font-size:.72rem;color:var(--text-muted)">Loading…</div>
+                </div>
+              </div>
+              <div class="crypto-card" id="cc-usdt" onclick="selectCryptoCard('usdt','Tether','USDT','₮','#26A17B')">
+                <div style="display:flex;align-items:center;gap:1rem">
+                  <div style="width:48px;height:48px;border-radius:14px;background:#26A17B22;border:1px solid #26A17B44;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#26A17B;font-weight:700">₮</div>
+                  <div style="flex:1">
+                    <div style="font-weight:700;font-size:.95rem;color:var(--text)">Tether USD</div>
+                    <div style="font-size:.75rem;color:var(--text-muted)">USDT — Stablecoin</div>
+                  </div>
+                  <div id="cc-usdt-status" style="font-size:.72rem;color:var(--text-muted)">Loading…</div>
+                </div>
+              </div>
+            </div>
+            <button onclick="selectCrypto()" class="btn-primary" style="width:100%" id="select-crypto-btn" disabled data-i18n="continue">Continue →</button>
+          </div>
+
+          <!-- Crypto Wallet View -->
+          <div id="deposit-crypto-wallet-view" style="display:none">
+            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem">
+              <button onclick="backToCryptoSelect()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.5rem .85rem;cursor:pointer;color:var(--text-muted);font-family:var(--font);font-size:.85rem;display:flex;align-items:center;gap:.4rem">← <span data-i18n="back">Back</span></button>
+              <div>
+                <div style="font-weight:700;font-size:1rem;color:var(--text)" id="dep-crypto-name">Bitcoin Deposit</div>
+                <div style="font-size:.75rem;color:var(--text-muted)">Scan QR or copy the wallet address</div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:1.25rem">
+              <!-- Coin header -->
+              <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border)">
+                <div style="width:54px;height:54px;border-radius:16px;background:rgba(0,133,124,.1);border:1px solid rgba(0,133,124,.2);display:flex;align-items:center;justify-content:center;font-size:1.6rem" id="dep-crypto-icon">₿</div>
+                <div>
+                  <div style="font-weight:700;font-size:1.1rem;color:var(--text)" id="dep-crypto-name-sub">Bitcoin</div>
+                  <div style="font-size:.78rem;color:var(--text-muted)" id="dep-crypto-symbol">BTC Network</div>
+                </div>
+                <div style="margin-left:auto;background:rgba(0,133,124,.1);border:1px solid rgba(0,133,124,.2);border-radius:8px;padding:.35rem .85rem">
+                  <span style="font-size:.72rem;color:var(--teal-light);font-weight:600">CONFIRMED</span>
+                </div>
+              </div>
+
+              <!-- QR Code + Address -->
+              <div style="display:flex;flex-direction:column;align-items:center;gap:1.25rem">
+                <div style="background:white;border-radius:16px;padding:16px;display:inline-block;box-shadow:0 4px 20px rgba(0,0,0,.3)">
+                  <div id="qr-container"></div>
+                </div>
+                <div style="width:100%">
+                  <p style="font-size:.75rem;color:var(--text-muted);font-weight:600;letter-spacing:.08em;margin-bottom:.5rem">WALLET ADDRESS</p>
+                  <div style="background:var(--surface2);border:1px solid rgba(0,133,124,.2);border-radius:12px;padding:1rem;word-break:break-all;font-family:'Space Grotesk',monospace;font-size:.82rem;color:var(--text);line-height:1.6" id="dep-wallet-addr">Loading…</div>
+                  <button onclick="copyWallet()" style="background:none;border:none;cursor:pointer;color:var(--teal-light);font-size:.82rem;font-weight:600;font-family:var(--font);margin-top:.6rem;display:flex;align-items:center;gap:.4rem">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    Copy Address
+                  </button>
+                </div>
+              </div>
+
+              <!-- Amount fields -->
+              <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                <div>
+                  <label style="font-size:.8rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem" id="crypto-amount-label">Amount Sent (BTC)</label>
+                  <input id="dep-crypto-amount" type="number" class="input-field" placeholder="0.00000000" step="0.00000001"/>
+                </div>
+                <div>
+                  <label style="font-size:.8rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem" data-i18n="usd_equivalent">USD Equivalent</label>
+                  <input id="dep-usd-amount" type="number" class="input-field" placeholder="0.00"/>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:1rem 1.25rem;font-size:.8rem;color:rgba(201,168,76,.8);line-height:1.7;margin-bottom:1.25rem">
+              ⚠️ Send only <strong id="dep-warn-coin">BTC</strong> to this address. Sending any other cryptocurrency may result in <strong>permanent loss of funds</strong>.
+            </div>
+
+            <button onclick="submitDeposit()" class="btn-primary" style="width:100%;padding:1rem" data-i18n="i_have_sent_crypto">✓ I Have Sent It</button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══════════════ HISTORY PAGE ══════════════ -->
+      <div class="page-section" id="page-history">
+        <div style="margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+          <div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--text)" data-i18n="tx_history">Transaction History</h2>
+            <p style="color:var(--text-muted);font-size:.875rem;margin-top:.25rem" data-i18n="all_activity">All your account activity</p>
+          </div>
+          <div style="display:flex;gap:.6rem">
+            <select id="filter-type" onchange="filterTx()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.55rem .85rem;color:var(--text);font-size:.82rem;font-family:var(--font);outline:none;cursor:pointer">
+              <option value="">All Types</option>
+              <option value="transfer">Transfers</option>
+              <option value="deposit">Deposits</option>
+              <option value="fund">Funded</option>
+            </select>
+            <select id="filter-status" onchange="filterTx()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.55rem .85rem;color:var(--text);font-size:.82rem;font-family:var(--font);outline:none;cursor:pointer">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="declined">Declined</option>
+            </select>
+          </div>
+        </div>
+        <div class="card" id="history-list">
+          <div style="text-align:center;padding:3rem;color:var(--text-muted)">No transactions found</div>
+        </div>
+      </div>
+
+      <!-- ══════════════ SETTINGS PAGE ══════════════ -->
+      <div class="page-section" id="page-settings">
+        <div style="max-width:680px">
+          <div style="margin-bottom:1.75rem">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--text)" data-i18n="settings">Account Settings</h2>
+            <p style="color:var(--text-muted);font-size:.875rem;margin-top:.25rem" data-i18n="settings_subtitle">Customize your banking experience</p>
+          </div>
+
+          <!-- Account Info -->
+          <div class="card" style="margin-bottom:1.25rem;border-color:rgba(0,133,124,.2)">
+            <h3 style="font-weight:700;font-size:.95rem;margin-bottom:1.25rem;color:var(--text)" data-i18n="account_info">Account Information</h3>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem">
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem" data-i18n="account_number">Account Number</label>
+                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;font-family:'Space Grotesk',monospace;font-size:.9rem;color:var(--text)" id="s-acct-num">—</div>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem" data-i18n="account_type">Account Type</label>
+                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;font-size:.9rem;color:var(--text)" id="s-acct-type">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile -->
+          <div class="card" style="margin-bottom:1.25rem">
+            <h3 style="font-weight:700;font-size:.95rem;margin-bottom:1.25rem;color:var(--text)" data-i18n="profile_info">Profile Information</h3>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem">
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem" data-i18n="first_name">First Name</label>
+                <input id="s-first" class="input-field"/>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem" data-i18n="last_name">Last Name</label>
+                <input id="s-last" class="input-field"/>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem" data-i18n="phone">Phone</label>
+                <input id="s-phone" class="input-field"/>
+              </div>
+              <div>
+                <label style="font-size:.78rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem" data-i18n="email_readonly">Email (read-only)</label>
+                <input id="s-email" class="input-field" readonly style="opacity:.5"/>
+              </div>
+            </div>
+            <button onclick="saveProfile()" class="btn-primary" style="margin-top:1.25rem" data-i18n="save_changes">Save Changes</button>
+          </div>
+
+          <!-- Theme -->
+          <div class="card" style="margin-bottom:1.25rem">
+            <h3 style="font-weight:700;font-size:.95rem;margin-bottom:1.25rem;color:var(--text)" data-i18n="appearance">Appearance</h3>
+            <div style="margin-bottom:1.25rem">
+              <p style="font-size:.82rem;font-weight:500;color:var(--text-muted);margin-bottom:.75rem" data-i18n="theme">Theme</p>
+              <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+                <button onclick="setTheme('dark')" id="theme-dark" class="lang-option selected">🌙 Dark</button>
+                <button onclick="setTheme('light')" id="theme-light" class="lang-option">☀️ Light</button>
+                <button onclick="setTheme('cream')" id="theme-cream" class="lang-option">🍂 Cream</button>
+              </div>
+            </div>
+            <div>
+              <p style="font-size:.82rem;font-weight:500;color:var(--text-muted);margin-bottom:.75rem" data-i18n="font">Font</p>
+              <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+                <button onclick="setFont('DM Sans')" id="font-dmsans" class="lang-option selected" style="font-family:'DM Sans',sans-serif">DM Sans</button>
+                <button onclick="setFont('Sora')" id="font-sora" class="lang-option" style="font-family:'Sora',sans-serif">Sora</button>
+                <button onclick="setFont('Outfit')" id="font-outfit" class="lang-option" style="font-family:'Outfit',sans-serif">Outfit</button>
+                <button onclick="setFont('Space Grotesk')" id="font-spacegrotek" class="lang-option" style="font-family:'Space Grotesk',sans-serif">Space Grotesk</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Language -->
+          <div class="card" style="margin-bottom:1.25rem">
+            <h3 style="font-weight:700;font-size:.95rem;margin-bottom:.5rem;color:var(--text)" data-i18n="language">Language</h3>
+            <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:1.25rem" data-i18n="language_desc">Select your preferred interface language</p>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem">
+              <button onclick="setLang('en')" id="lang-en" class="lang-option selected">🇺🇸 English</button>
+              <button onclick="setLang('es')" id="lang-es" class="lang-option">🇪🇸 Español</button>
+              <button onclick="setLang('fr')" id="lang-fr" class="lang-option">🇫🇷 Français</button>
+              <button onclick="setLang('de')" id="lang-de" class="lang-option">🇩🇪 Deutsch</button>
+              <button onclick="setLang('pt')" id="lang-pt" class="lang-option">🇧🇷 Português</button>
+              <button onclick="setLang('zh')" id="lang-zh" class="lang-option">🇨🇳 中文</button>
+              <button onclick="setLang('ar')" id="lang-ar" class="lang-option">🇸🇦 العربية</button>
+              <button onclick="setLang('hi')" id="lang-hi" class="lang-option">🇮🇳 हिंदी</button>
+              <button onclick="setLang('yo')" id="lang-yo" class="lang-option">🇳🇬 Yorùbá</button>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div class="card" style="border-color:rgba(220,53,69,.2)">
+            <h3 style="font-weight:700;font-size:.95rem;margin-bottom:.75rem;color:#ff6b7a" data-i18n="security">Security</h3>
+            <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:1rem" data-i18n="sign_out_all">Sign out from all devices</p>
+            <button onclick="authSignOut()" class="btn-ghost" style="border-color:rgba(220,53,69,.3);color:#ff6b7a" data-i18n="sign_out">Sign Out</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════ CARDS PAGE ══════════════ -->
+      <div class="page-section" id="page-cards">
+        <div style="max-width:680px">
+          <div style="margin-bottom:1.75rem">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--text)">Debit & Credit Cards</h2>
+            <p style="color:var(--text-muted);font-size:.875rem;margin-top:.3rem">Apply for a card that suits your needs</p>
+          </div>
+
+          <div id="cards-catalog-view">
+            <!-- Cards will be rendered here by JS -->
+            <div id="cards-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem"></div>
+            <div id="cards-no-config" style="display:none;text-align:center;padding:3rem;color:var(--text-muted)">
+              <div style="width:64px;height:64px;border-radius:50%;background:rgba(201,168,76,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;border:1.5px solid rgba(201,168,76,.25)">
+                <svg width="28" height="28" fill="none" stroke="#C9A84C" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              </div>
+              <p style="font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:.4rem">No Cards Available</p>
+              <p style="font-size:.8rem">Card options have not been configured yet. Please check back later.</p>
+            </div>
+          </div>
+
+          <!-- My Card Applications -->
+          <div style="margin-top:2rem">
+            <h3 style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:1rem">My Card Applications</h3>
+            <div id="my-card-apps">
+              <div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:.85rem">No card applications yet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════ LOANS PAGE ══════════════ -->
+      <div class="page-section" id="page-loans">
+        <div style="max-width:640px">
+          <div style="margin-bottom:1.75rem">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--text)">Loans</h2>
+            <p style="color:var(--text-muted);font-size:.875rem;margin-top:.3rem">Apply for a personal, auto, or home loan</p>
+          </div>
+
+          <!-- Loan Form -->
+          <div id="loan-form-view" class="card">
+            <h3 style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:1.25rem">Loan Application</h3>
+            <div style="display:flex;flex-direction:column;gap:1rem">
+              <div>
+                <label style="font-size:.8rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem">Loan Type <span style="color:#ff6b7a">*</span></label>
+                <select id="loan-type" class="input-field">
+                  <option value="">Select loan type</option>
+                  <option value="personal">Personal Loan</option>
+                  <option value="auto">Auto Loan</option>
+                  <option value="home">Home / Mortgage Loan</option>
+                  <option value="student">Student Loan</option>
+                  <option value="business">Business Loan</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:.8rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem">Loan Amount (USD) <span style="color:#ff6b7a">*</span></label>
+                <div style="position:relative">
+                  <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:600">$</span>
+                  <input id="loan-amount" type="number" class="input-field" style="padding-left:2rem" placeholder="0.00" min="500"/>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:.8rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem">Repayment Term <span style="color:#ff6b7a">*</span></label>
+                <select id="loan-term" class="input-field">
+                  <option value="">Select term</option>
+                  <option value="6">6 months</option>
+                  <option value="12">12 months</option>
+                  <option value="24">24 months</option>
+                  <option value="36">36 months</option>
+                  <option value="48">48 months</option>
+                  <option value="60">60 months</option>
+                  <option value="84">84 months</option>
+                  <option value="120">120 months (10 years)</option>
+                  <option value="180">180 months (15 years)</option>
+                  <option value="240">240 months (20 years)</option>
+                  <option value="360">360 months (30 years)</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:.8rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem">Purpose / Description <span style="color:#ff6b7a">*</span></label>
+                <textarea id="loan-purpose" class="input-field" rows="3" placeholder="Briefly describe what this loan is for..." style="resize:vertical"></textarea>
+              </div>
+              <div>
+                <label style="font-size:.8rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem">Annual Income (USD) <span style="color:#ff6b7a">*</span></label>
+                <div style="position:relative">
+                  <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:600">$</span>
+                  <input id="loan-income" type="number" class="input-field" style="padding-left:2rem" placeholder="0.00"/>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:.8rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem">Employment Status <span style="color:#ff6b7a">*</span></label>
+                <select id="loan-employment" class="input-field">
+                  <option value="">Select status</option>
+                  <option value="employed">Employed</option>
+                  <option value="self_employed">Self-Employed</option>
+                  <option value="retired">Retired</option>
+                  <option value="student">Student</option>
+                  <option value="unemployed">Unemployed</option>
+                </select>
+              </div>
+              <div style="margin-top:.5rem;padding-top:1.25rem;border-top:1px solid var(--border)">
+                <button onclick="submitLoanApplication()" class="btn-primary" style="width:100%">Submit Loan Application</button>
+                <p style="font-size:.75rem;color:var(--text-muted);text-align:center;margin-top:.75rem">Your application will be reviewed by our team. Once approved, funds will be credited to your account.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- My Loan Applications -->
+          <div style="margin-top:2rem">
+            <h3 style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:1rem">My Loan Applications</h3>
+            <div id="my-loan-apps">
+              <div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:.85rem">No loan applications yet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /site -->
+
+<!-- ══ TRANSACTION PIN MODAL ══ -->
+<div class="modal" id="pin-modal">
+  <div class="modal-overlay" onclick="closePinModal()"></div>
+  <div class="modal-box" style="max-width:400px">
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,rgba(0,133,124,.25),rgba(0,168,150,.1));display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;border:1px solid rgba(0,133,124,.3)">
+        <svg width="26" height="26" fill="none" stroke="#00A896" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h3 style="font-weight:700;font-size:1.1rem;color:var(--text);margin-bottom:.3rem">Transaction PIN Required</h3>
+      <p style="font-size:.82rem;color:var(--text-muted)">Enter your 4–6 digit transaction PIN to authorise this transfer</p>
+    </div>
+    <div style="margin-bottom:1.25rem">
+      <label style="font-size:.8rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.5rem">Transaction PIN</label>
+      <div style="position:relative">
+        <input id="pin-input" type="password" class="input-field" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••••" style="text-align:center;letter-spacing:.4em;font-size:1.3rem;font-weight:700"/>
+        <button onclick="togglePinVisibility()" style="position:absolute;right:.85rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted)">
+          <svg id="pin-eye" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+      <button onclick="closePinModal()" class="btn-ghost">Cancel</button>
+      <button onclick="confirmPinAndTransfer()" class="btn-primary">Confirm Transfer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CARD APPLY CONFIRM MODAL ══ -->
+<div class="modal" id="card-apply-modal">
+  <div class="modal-overlay" onclick="closeCardModal()"></div>
+  <div class="modal-box" style="max-width:420px">
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <div style="width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem" id="card-modal-icon-wrap">
+        <span id="card-modal-icon" style="font-size:2rem">💳</span>
+      </div>
+      <h3 style="font-weight:700;font-size:1.15rem;color:var(--text);margin-bottom:.4rem" id="card-modal-name">Card Name</h3>
+      <div style="display:inline-flex;align-items:center;gap:.5rem;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);border-radius:8px;padding:.4rem 1rem;margin:.5rem 0">
+        <span style="font-size:.75rem;color:var(--text-muted)">Price:</span>
+        <span style="font-weight:700;font-size:1rem;color:var(--gold)" id="card-modal-price">$0.00</span>
+      </div>
+      <p style="font-size:.82rem;color:var(--text-muted)" id="card-modal-desc">Card description</p>
+    </div>
+    <div style="background:rgba(0,133,124,.06);border:1px solid rgba(0,133,124,.15);border-radius:12px;padding:1rem;margin-bottom:1.25rem">
+      <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.4rem">
+        <span style="color:var(--text-muted)">Available Balance</span>
+        <span style="font-weight:600;color:var(--teal-light)" id="card-modal-balance">$0.00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.85rem">
+        <span style="color:var(--text-muted)">Card Price</span>
+        <span style="font-weight:600;color:var(--gold)" id="card-modal-price2">$0.00</span>
+      </div>
+    </div>
+    <p style="font-size:.78rem;color:var(--text-muted);text-align:center;margin-bottom:1.25rem">The card price will be debited from your balance upon admin approval.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+      <button onclick="closeCardModal()" class="btn-ghost">Cancel</button>
+      <button onclick="confirmCardApplication()" class="btn-primary">Apply Now</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- ════════════════════ FIREBASE + APP LOGIC ════════════════════ -->
+<script type="module">
+  import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut, sendEmailVerification }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getDatabase, ref, get, set, push, update, onValue }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD_yrAE0WCnNPjc_2FZ4ZhLG2AJRFA6V2c",
+    authDomain: "navy-credit-union-2f63d.firebaseapp.com",
+    databaseURL: "https://navy-credit-union-2f63d-default-rtdb.firebaseio.com",
+    projectId: "navy-credit-union-2f63d",
+    storageBucket: "navy-credit-union-2f63d.firebasestorage.app",
+    messagingSenderId: "176577787303",
+    appId: "1:176577787303:web:7281f340b470daeb45f282"
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getDatabase(app);
+
+  let currentUser     = null;
+  let userData        = null;
+  let allTransactions = [];
+  let selectedCrypto  = null;
+  let cryptoAddresses = {};
+  let bankDepositDetails = {};
+  let currentTransferType = null;
+
+  // ════════ AUTH GUARD ════════
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'login.html'; return; }
+    currentUser = user;
+
+    // Two valid paths to be considered verified:
+    // 1. Admin-created users: have verified:true written to DB directly.
+    // 2. Self-registered users: Firebase Auth emailVerified is true after
+    //    they click the verification link in their email.
+    const verifiedSnap = await get(ref(db, `users/${user.uid}/verified`)).catch(() => null);
+    const dbVerified   = verifiedSnap && verifiedSnap.exists() ? verifiedSnap.val() : false;
+    await user.reload().catch(() => {});
+    const authVerified = auth.currentUser ? auth.currentUser.emailVerified : false;
+    const isVerified   = dbVerified || authVerified;
+
+    if (!isVerified) {
+      document.getElementById('unverified-email').textContent = user.email || 'your email';
+      document.getElementById('unverified-screen').classList.add('show');
+      document.getElementById('preloader').classList.add('hide');
+      return;
+    }
+    await loadUserData();
+    loadCryptoAddresses();
+    loadBankDepositDetails();
+    listenTransactions();
+    loadCards();
+    loadLoanApplications();
+    setTimeout(() => {
+      document.getElementById('preloader').classList.add('hide');
+      document.getElementById('site').classList.add('show');
+    }, 1800);
+  });
+
+  // ════════ LOAD USER DATA ════════
+  async function loadUserData() {
+    const snap = await get(ref(db, `users/${currentUser.uid}`));
+    userData = snap.val();
+    if (!userData) { window.location.href = 'register.html'; return; }
+    if (userData.blocked) {
+      document.getElementById('preloader').classList.add('hide');
+      document.getElementById('blocked-screen').classList.add('show');
+      return;
+    }
+    renderUserInfo();
+  }
+
+  function renderUserInfo() {
+    const firstName = userData.firstName || '';
+    const lastName  = userData.lastName  || '';
+    const name      = `${firstName} ${lastName}`.trim() || 'Member';
+    const initials  = ((firstName[0]||'') + (lastName[0]||'')).toUpperCase() || '?';
+    const acct      = userData.accountNumber || '';
+    const masked    = acct.length >= 6 ? acct.slice(0,2)+'••••'+acct.slice(-4) : acct||'––––––––';
+    const acctType  = userData.accountType || 'Checking';
+    const createdAt = userData.createdAt
+      ? new Date(userData.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short'}) : '—';
+
+    document.getElementById('topbar-name').textContent   = name;
+    document.getElementById('sidebar-name').textContent  = name;
+    document.getElementById('sidebar-account').textContent = masked;
+    document.getElementById('user-avatar').textContent   = initials;
+    document.getElementById('top-avatar').textContent    = initials;
+    document.getElementById('main-acct-num').textContent = masked;
+    document.getElementById('main-acct-type').textContent= acctType;
+    document.getElementById('acct-num-display').textContent = acct || '––––––––––';
+    document.getElementById('acct-type-display').textContent = acctType;
+    document.getElementById('member-since').textContent  = createdAt;
+    document.getElementById('s-acct-num').textContent    = acct || '—';
+    document.getElementById('s-acct-type').textContent   = acctType;
+    document.getElementById('s-first').value  = userData.firstName || '';
+    document.getElementById('s-last').value   = userData.lastName  || '';
+    document.getElementById('s-phone').value  = userData.phone     || '';
+    document.getElementById('s-email').value  = userData.email     || currentUser.email || '';
+
+    const h = new Date().getHours();
+    const greetings = { en: h<12?'Good morning':h<18?'Good afternoon':'Good evening', es: h<12?'Buenos días':h<18?'Buenas tardes':'Buenas noches', fr: h<12?'Bonjour':h<18?'Bon après-midi':'Bonsoir', de: h<12?'Guten Morgen':h<18?'Guten Tag':'Guten Abend', pt: h<12?'Bom dia':h<18?'Boa tarde':'Boa noite', zh: h<12?'早上好':h<18?'下午好':'晚上好', ar: h<12?'صباح الخير':h<18?'مساء الخير':'مساء الخير', hi: h<12?'सुप्रभात':h<18?'नमस्ते':'शुभ संध्या', yo: h<12?'Ẹ káàárọ̀':h<18?'Ẹ káàsán':'Ẹ kú irọlẹ' };
+    const lang = window._currentLang || 'en';
+    document.getElementById('topbar-greeting').textContent = greetings[lang] || greetings.en;
+
+    updateBalance(userData.balance || 0);
+    if (userData.settings) {
+      const s = userData.settings;
+      if (s.theme)    setTheme(s.theme, true);
+      if (s.font)     setFont(s.font, true);
+      if (s.language) setLang(s.language, true);
+    }
+  }
+
+  function updateBalance(bal) {
+    const fmt = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(bal);
+    document.getElementById('main-balance').textContent     = fmt;
+    document.getElementById('transfer-balance').textContent = fmt;
+  }
+
+  // ════════ TRANSACTIONS ════════
+  let allCardApps = [];
+  let allLoanApps = [];
+
+  function buildCombinedActivity() {
+    // Tag each entry with its source type so txHTML can handle it
+    const txItems   = allTransactions.map(t => ({...t, _src:'tx'}));
+    const cardItems = allCardApps.map(a => ({...a, _src:'card'}));
+    const loanItems = allLoanApps.map(a => ({...a, _src:'loan'}));
+    return [...txItems, ...cardItems, ...loanItems]
+      .sort((a,b) => b.createdAt - a.createdAt);
+  }
+
+  function listenTransactions() {
+    onValue(ref(db,'transactions'), (snap) => {
+      allTransactions = [];
+      snap.forEach(child => {
+        const tx = { id: child.key, ...child.val() };
+        if (tx.userId === currentUser.uid) allTransactions.push(tx);
+      });
+      allTransactions.sort((a,b) => b.createdAt - a.createdAt);
+      renderRecentTx();
+      renderHistoryTx();
+      updateStats();
+      get(ref(db,`users/${currentUser.uid}/balance`)).then(s => updateBalance(s.val()||0));
+      const pending = allTransactions.filter(t=>t.status==='pending').length;
+      const badge = document.getElementById('pending-badge');
+      badge.style.display = pending > 0 ? '' : 'none';
+      badge.textContent = pending;
+    });
+
+    // Listen to card applications and include in recent activity
+    onValue(ref(db,'cardApplications'), (snap) => {
+      allCardApps = [];
+      snap.forEach(child => {
+        const d = { id: child.key, ...child.val() };
+        if (d.userId === currentUser.uid) allCardApps.push(d);
+      });
+      renderRecentTx();
+    });
+
+    // Listen to loan applications and include in recent activity
+    onValue(ref(db,'loanApplications'), (snap) => {
+      allLoanApps = [];
+      snap.forEach(child => {
+        const d = { id: child.key, ...child.val() };
+        if (d.userId === currentUser.uid) allLoanApps.push(d);
+      });
+      renderRecentTx();
+    });
+
+    onValue(ref(db,`users/${currentUser.uid}/balance`), s => updateBalance(s.val()||0));
+    onValue(ref(db,`users/${currentUser.uid}/blocked`), s => {
+      if(s.val()===true) document.getElementById('blocked-screen').classList.add('show');
+    });
+  }
+
+  function renderRecentTx() {
+    const container = document.getElementById('recent-tx');
+    const combined = buildCombinedActivity();
+    const recent = combined.slice(0,5);
+    if(!recent.length) {
+      container.innerHTML = `<div style="text-align:center;padding:2.5rem;color:var(--text-muted)"><p style="font-size:.875rem">No transactions yet</p></div>`;
+      return;
+    }
+    container.innerHTML = recent.map(item => txHTML(item)).join('');
+  }
+
+  function renderHistoryTx(filtered = null) {
+    const list = filtered || allTransactions;
+    const container = document.getElementById('history-list');
+    if(!list.length) {
+      container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text-muted)">No transactions found</div>`;
+      return;
+    }
+    container.innerHTML = `<div>${list.map(tx => txHTML(tx, true)).join('')}</div>`;
+  }
+
+  function txHTML(tx, full = false) {
+    // ── Card application entry ──
+    if (tx._src === 'card') {
+      const sc = tx.status === 'approved' ? 'status-approved' : tx.status === 'declined' ? 'status-declined' : 'status-pending';
+      const amtColor = tx.status === 'approved' ? '#ff6b7a' : tx.status === 'declined' ? 'var(--text-muted)' : 'var(--text)';
+      const date = new Date(tx.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      return `
+        <div class="tx-item">
+          <div class="tx-icon" style="background:rgba(0,33,71,.5);font-size:1.1rem">${tx.cardIcon||'💳'}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:.875rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tx.cardName||'Card Application'}</div>
+            <div style="font-size:.75rem;color:var(--text-muted);margin-top:.15rem">${date} · Card</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-weight:700;font-size:.9rem;color:${amtColor}">${tx.status==='approved'?'-':''}$${parseFloat(tx.cardPrice||0).toFixed(2)}</div>
+            <span class="status-badge ${sc}">${tx.status}</span>
+          </div>
+        </div>`;
+    }
+    // ── Loan application entry ──
+    if (tx._src === 'loan') {
+      const sc = tx.status === 'approved' ? 'status-approved' : tx.status === 'declined' ? 'status-declined' : 'status-pending';
+      const amtColor = tx.status === 'approved' ? '#4ade80' : tx.status === 'declined' ? 'var(--text-muted)' : 'var(--text)';
+      const typeLabels = {personal:'Personal Loan',auto:'Auto Loan',home:'Home/Mortgage',student:'Student Loan',business:'Business Loan'};
+      const date = new Date(tx.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      return `
+        <div class="tx-item">
+          <div class="tx-icon" style="background:rgba(201,168,76,.12);color:#C9A84C;font-size:1.1rem">💰</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:.875rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${typeLabels[tx.loanType]||tx.loanType||'Loan Application'}</div>
+            <div style="font-size:.75rem;color:var(--text-muted);margin-top:.15rem">${date} · Loan</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-weight:700;font-size:.9rem;color:${amtColor}">${tx.status==='approved'?'+':''}$${parseFloat(tx.amount||0).toFixed(2)}</div>
+            <span class="status-badge ${sc}">${tx.status}</span>
+          </div>
+        </div>`;
+    }
+    // ── Regular transaction entry ──
+    const isCredit  = tx.type==='deposit' || tx.type==='fund';
+    const iconBg    = isCredit ? 'rgba(0,133,124,.12)' : 'rgba(201,168,76,.12)';
+    const iconColor = isCredit ? '#00A896' : '#C9A84C';
+    const amtColor  = isCredit ? '#4ade80' : (tx.status==='declined'?'#ff6b7a':'var(--text)');
+    const amtPrefix = isCredit ? '+' : '-';
+    const statusClass = `status-${tx.status}`;
+    const typeIconMap = { deposit:'↓', fund:'★', transfer:'↑' };
+    const icon = typeIconMap[tx.type] || '⇄';
+    const date = new Date(tx.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    return `
+      <div class="tx-item">
+        <div class="tx-icon" style="background:${iconBg};color:${iconColor};font-size:1.1rem;font-weight:700">${icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:.875rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tx.description||tx.type}</div>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:.15rem">${date}${full&&tx.name?' · '+tx.name:''}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-weight:700;font-size:.9rem;color:${amtColor}">${tx.status==='declined'?'–':amtPrefix}$${parseFloat(tx.amount).toFixed(2)}</div>
+          <span class="status-badge ${statusClass}">${tx.status}</span>
+        </div>
+      </div>`;
+  }
+
+  function updateStats() {
+    let totalIn=0, totalOut=0, pending=0;
+    allTransactions.forEach(tx => {
+      if(tx.status==='approved') {
+        if(tx.type==='deposit'||tx.type==='fund') totalIn+=tx.amount;
+        else totalOut+=tx.amount;
+      }
+      if(tx.status==='pending') pending++;
+    });
+    document.getElementById('total-in').textContent      = `$${totalIn.toFixed(2)}`;
+    document.getElementById('total-out').textContent     = `$${totalOut.toFixed(2)}`;
+    document.getElementById('total-pending').textContent = pending;
+  }
+
+  window.filterTx = function() {
+    const type   = document.getElementById('filter-type').value;
+    const status = document.getElementById('filter-status').value;
+    let filtered = allTransactions;
+    if(type)   filtered = filtered.filter(t=>t.type===type);
+    if(status) filtered = filtered.filter(t=>t.status===status);
+    renderHistoryTx(filtered);
+  };
+
+  // ════════ CRYPTO ADDRESSES ════════
+  function loadCryptoAddresses() {
+    onValue(ref(db,'cryptoAddresses'), snap => {
+      cryptoAddresses = snap.val() || {};
+      updateCryptoStatuses();
+    });
+  }
+
+  function updateCryptoStatuses() {
+    ['btc','eth','usdt'].forEach(id => {
+      const el = document.getElementById(`cc-${id}-status`);
+      if(el) {
+        if(cryptoAddresses[id]) {
+          el.innerHTML = '<span style="color:var(--teal-light);font-weight:600">✓ Address ready</span>';
+        } else {
+          el.innerHTML = '<span style="color:var(--text-muted)">Pending setup</span>';
+        }
+      }
+    });
+  }
+
+  // ════════ BANK DEPOSIT DETAILS ════════
+  function loadBankDepositDetails() {
+    onValue(ref(db,'bankDepositDetails'), snap => {
+      bankDepositDetails = snap.val() || {};
+      renderBankDetails();
+    });
+  }
+
+  function renderBankDetails() {
+    const container = document.getElementById('bank-details-list');
+    const d = bankDepositDetails;
+    const fields = [
+      { label:'Bank Name', key:'bankName', icon:'🏦' },
+      { label:'Account Name', key:'accountName', icon:'👤' },
+      { label:'Account Number', key:'accountNumber', icon:'#️⃣' },
+      { label:'Routing Number', key:'routingNumber', icon:'🔢' },
+      { label:'SWIFT / BIC Code', key:'swiftCode', icon:'🌐' },
+      { label:'IBAN', key:'iban', icon:'🔐' },
+      { label:'Bank Address', key:'bankAddress', icon:'📍' },
+      { label:'Reference', key:'reference', icon:'📋' },
+    ];
+    const available = fields.filter(f => d[f.key]);
+    if(!available.length) {
+      container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-muted)"><div style="width:48px;height:48px;border-radius:50%;background:rgba(201,168,76,.1);display:flex;align-items:center;justify-content:center;margin:0 auto .75rem"><svg width="22" height="22" fill="none" stroke="#C9A84C" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><p style="font-size:.85rem">Bank details not yet configured. Please contact support.</p></div>`;
+      return;
+    }
+    container.innerHTML = available.map(f => `
+      <div class="bank-detail-row">
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <span style="font-size:1rem">${f.icon}</span>
+          <span style="font-size:.82rem;color:var(--text-muted);font-weight:500">${f.label}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:.88rem;font-weight:600;color:var(--text);font-family:'Space Grotesk',monospace">${d[f.key]}</span>
+          <button onclick="copyText('${d[f.key]}')" style="background:none;border:none;cursor:pointer;color:var(--teal-light);padding:.2rem" title="Copy">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+      </div>`).join('');
+  }
+
+  window.copyText = function(text) {
+    navigator.clipboard.writeText(text).then(() => showToast('Copied!', 'success'));
+  };
+
+  // ════════ TRANSFER TYPE SELECTION ════════
+  window.selectTransferType = function(type) {
+    currentTransferType = type;
+    document.getElementById('transfer-type-view').style.display = 'none';
+    document.getElementById('transfer-form-view').style.display = 'block';
+
+    const titles = {
+      domestic:      ['Domestic Transfer', 'US bank account transfer'],
+      international: ['International Wire Transfer', 'Cross-border SWIFT/IBAN transfer'],
+      zelle:         ['Zelle Transfer', 'Instant US money transfer'],
+      ach:           ['ACH Bank Transfer', '1–3 business days'],
+      wire:          ['Wire Transfer', 'Same-day high-value transfer'],
+    };
+    document.getElementById('transfer-form-title').textContent    = titles[type][0];
+    document.getElementById('transfer-form-subtitle').textContent = titles[type][1];
+
+    const fieldsMap = {
+      domestic: [
+        { id:'tx-name', label:'Recipient Full Name', placeholder:'John Smith', required:true },
+        { id:'tx-routing', label:'Routing Number', placeholder:'9-digit routing number', required:true },
+        { id:'tx-account', label:'Account Number', placeholder:'Account number', required:true },
+        { id:'tx-bank', label:'Bank Name', placeholder:'e.g. Chase, Bank of America', required:true },
+        { id:'tx-amount', label:'Amount (USD)', placeholder:'0.00', type:'number', required:true, prefix:'$' },
+        { id:'tx-desc', label:'Memo / Description (optional)', placeholder:'e.g. Rent, Invoice #123' },
+      ],
+      international: [
+        { id:'tx-name', label:'Recipient Full Name', placeholder:'Full legal name', required:true },
+        { id:'tx-bank', label:'Bank Name', placeholder:'e.g. Deutsche Bank, HSBC', required:true },
+        { id:'tx-iban', label:'IBAN', placeholder:'e.g. GB29 NWBK 6016 1331 9268 19', required:true },
+        { id:'tx-swift', label:'SWIFT / BIC Code', placeholder:'e.g. DEUTDEDB', required:true },
+        { id:'tx-country', label:'Recipient Country', placeholder:'e.g. United Kingdom', required:true },
+        { id:'tx-account', label:'Account Number (if no IBAN)', placeholder:'Optional if IBAN provided' },
+        { id:'tx-amount', label:'Amount (USD)', placeholder:'0.00', type:'number', required:true, prefix:'$' },
+        { id:'tx-desc', label:'Payment Reference (optional)', placeholder:'e.g. Invoice #456' },
+      ],
+      zelle: [
+        { id:'tx-name', label:'Recipient Name', placeholder:'Full name', required:true },
+        { id:'tx-account', label:'Zelle Email or Phone', placeholder:'email@example.com or +1 (555) 000-0000', required:true },
+        { id:'tx-amount', label:'Amount (USD)', placeholder:'0.00', type:'number', required:true, prefix:'$' },
+        { id:'tx-desc', label:'Note (optional)', placeholder:'e.g. Dinner split' },
+      ],
+      ach: [
+        { id:'tx-name', label:'Recipient Full Name', placeholder:'John Smith', required:true },
+        { id:'tx-routing', label:'Routing Number', placeholder:'9-digit ABA routing number', required:true },
+        { id:'tx-account', label:'Account Number', placeholder:'Account number', required:true },
+        { id:'tx-bank', label:'Bank Name', placeholder:'Receiving bank name', required:true },
+        { id:'tx-amount', label:'Amount (USD)', placeholder:'0.00', type:'number', required:true, prefix:'$' },
+        { id:'tx-desc', label:'Description (optional)', placeholder:'e.g. Payroll, Vendor payment' },
+      ],
+      wire: [
+        { id:'tx-name', label:'Beneficiary Name', placeholder:'Full legal name', required:true },
+        { id:'tx-bank', label:'Beneficiary Bank', placeholder:'Bank name', required:true },
+        { id:'tx-routing', label:'Routing / ABA Number', placeholder:'9-digit routing number', required:true },
+        { id:'tx-account', label:'Account Number', placeholder:'Account number', required:true },
+        { id:'tx-amount', label:'Amount (USD)', placeholder:'0.00', type:'number', required:true, prefix:'$' },
+        { id:'tx-desc', label:'Wire Instructions / Memo', placeholder:'Optional reference' },
+      ],
+    };
+
+    const fields = fieldsMap[type] || fieldsMap.domestic;
+    document.getElementById('transfer-fields').innerHTML = fields.map(f => `
+      <div>
+        <label style="font-size:.8rem;font-weight:500;color:var(--text-muted);display:block;margin-bottom:.4rem">
+          ${f.label}${f.required?'<span style="color:#ff6b7a;margin-left:.2rem">*</span>':''}
+        </label>
+        ${f.prefix ? `<div style="position:relative"><span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:600">${f.prefix}</span><input id="${f.id}" type="${f.type||'text'}" class="input-field" style="padding-left:2rem" placeholder="${f.placeholder}"/></div>` :
+          `<input id="${f.id}" type="${f.type||'text'}" class="input-field" placeholder="${f.placeholder}"/>`}
+      </div>`).join('');
+  };
+
+  window.backToTransferTypes = function() {
+    document.getElementById('transfer-type-view').style.display = 'block';
+    document.getElementById('transfer-form-view').style.display = 'none';
+    currentTransferType = null;
+  };
+
+  // ════════ SUBMIT TRANSFER — PIN GATE ════════
+  window.submitTransfer = async function() {
+    const name    = (document.getElementById('tx-name')?.value||'').trim();
+    const amount  = parseFloat(document.getElementById('tx-amount')?.value||0);
+
+    if(!name||!amount){ showToast('Please fill in all required fields','error'); return; }
+    if(amount<=0){ showToast('Enter a valid amount','error'); return; }
+
+    const balSnap = await get(ref(db,`users/${currentUser.uid}/balance`));
+    const bal = balSnap.val()||0;
+    if(amount>bal){ showToast(`Insufficient balance. Available: $${bal.toFixed(2)}`,'error'); return; }
+
+    // Open PIN modal
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-modal').classList.add('open');
+  };
+
+  window.closePinModal = function() {
+    document.getElementById('pin-modal').classList.remove('open');
+    document.getElementById('pin-input').value = '';
+  };
+
+  window.togglePinVisibility = function() {
+    const inp = document.getElementById('pin-input');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  };
+
+  window.confirmPinAndTransfer = async function() {
+    const enteredPin = document.getElementById('pin-input').value.trim();
+    if(!enteredPin || enteredPin.length < 4) {
+      showToast('Please enter your 4–6 digit PIN','error'); return;
+    }
+
+    // Verify PIN from DB
+    const pinSnap = await get(ref(db,`users/${currentUser.uid}/transactionPin`));
+    const storedPin = pinSnap.val();
+    if(!storedPin || enteredPin !== String(storedPin)) {
+      showToast('Incorrect PIN. Please try again.','error');
+      document.getElementById('pin-input').value = '';
+      return;
+    }
+
+    closePinModal();
+
+    const name    = (document.getElementById('tx-name')?.value||'').trim();
+    const account = (document.getElementById('tx-account')?.value||'').trim();
+    const bank    = (document.getElementById('tx-bank')?.value||'').trim();
+    const amount  = parseFloat(document.getElementById('tx-amount')?.value||0);
+    const desc    = (document.getElementById('tx-desc')?.value||'').trim();
+    const iban    = (document.getElementById('tx-iban')?.value||'').trim();
+    const swift   = (document.getElementById('tx-swift')?.value||'').trim();
+    const routing = (document.getElementById('tx-routing')?.value||'').trim();
+    const country = (document.getElementById('tx-country')?.value||'').trim();
+
+    try {
+      const txRef = push(ref(db,'transactions'));
+      await set(txRef,{
+        userId: currentUser.uid,
+        type:'transfer', status:'pending',
+        transferType: currentTransferType || 'domestic',
+        amount, name, account, bank, iban, swift, routing, country,
+        description: desc || `${(currentTransferType||'').replace(/^\w/,c=>c.toUpperCase())} Transfer`,
+        createdAt: Date.now(),
+        userEmail: userData.email,
+        userName: `${userData.firstName} ${userData.lastName}`,
+      });
+      showToast('Transfer request submitted! Pending review.','success');
+      document.querySelectorAll('#transfer-fields input').forEach(el => el.value='');
+      backToTransferTypes();
+      showPage('history');
+    } catch(e){ showToast(e.message,'error'); }
+  };
+
+  // ════════ DEPOSIT METHOD ════════
+  window.selectDepositMethod = function(method) {
+    document.getElementById('deposit-method-select').style.display = 'none';
+    if(method === 'bank') {
+      document.getElementById('deposit-bank-view').style.display = 'block';
+    } else {
+      document.getElementById('deposit-crypto-select-view').style.display = 'block';
+    }
+  };
+
+  window.backToDepositSelect = function() {
+    document.getElementById('deposit-method-select').style.display = 'block';
+    document.getElementById('deposit-bank-view').style.display = 'none';
+    document.getElementById('deposit-crypto-select-view').style.display = 'none';
+    document.getElementById('deposit-crypto-wallet-view').style.display = 'none';
+  };
+
+  window.backToCryptoSelect = function() {
+    document.getElementById('deposit-crypto-select-view').style.display = 'block';
+    document.getElementById('deposit-crypto-wallet-view').style.display = 'none';
+  };
+
+  // ════════ BANK DEPOSIT SUBMIT ════════
+  window.submitBankDeposit = async function() {
+    const amount = parseFloat(document.getElementById('bank-dep-amount').value);
+    const ref2   = (document.getElementById('bank-dep-ref').value||'').trim();
+    if(!amount||amount<=0){ showToast('Please enter the amount you sent','error'); return; }
+    try {
+      const txRef = push(ref(db,'transactions'));
+      await set(txRef,{
+        userId: currentUser.uid,
+        type:'deposit', status:'pending',
+        depositMethod: 'bank_transfer',
+        amount,
+        reference: ref2 || '',
+        description: 'Bank Transfer Deposit',
+        createdAt: Date.now(),
+        userEmail: userData.email,
+        userName: `${userData.firstName} ${userData.lastName}`,
+      });
+      document.getElementById('bank-dep-amount').value = '';
+      document.getElementById('bank-dep-ref').value    = '';
+      showToast('⏳ Waiting for admin to verify. Your account will be credited once confirmed.','info');
+      showPage('history');
+    } catch(e){ showToast(e.message,'error'); }
+  };
+
+  // ════════ CRYPTO ════════
+  window.selectCryptoCard = function(id,name,symbol,icon,color) {
+    selectedCrypto = {id,name,symbol,icon,color};
+    document.querySelectorAll('.crypto-card').forEach(el=>el.classList.remove('selected'));
+    document.getElementById(`cc-${id}`)?.classList.add('selected');
+    document.getElementById('select-crypto-btn').disabled = false;
+  };
+
+  window.selectCrypto = function() {
+    if(!selectedCrypto) return;
+    const addr = cryptoAddresses[selectedCrypto.id] || null;
+
+    document.getElementById('dep-crypto-icon').textContent  = selectedCrypto.icon;
+    document.getElementById('dep-crypto-icon').style.color  = selectedCrypto.color;
+    document.getElementById('dep-crypto-name').textContent  = `${selectedCrypto.name} Deposit`;
+    document.getElementById('dep-crypto-name-sub').textContent = selectedCrypto.name;
+    document.getElementById('dep-crypto-symbol').textContent = `${selectedCrypto.symbol} Network`;
+    document.getElementById('dep-warn-coin').textContent    = selectedCrypto.symbol;
+    document.getElementById('crypto-amount-label').textContent = `Amount Sent (${selectedCrypto.symbol})`;
+
+    if(addr) {
+      document.getElementById('dep-wallet-addr').textContent = addr;
+      // Generate real QR code
+      const qrContainer = document.getElementById('qr-container');
+      qrContainer.innerHTML = '';
+      try {
+        new QRCode(qrContainer, {
+          text: addr,
+          width: 180,
+          height: 180,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H,
+        });
+      } catch(e) {
+        qrContainer.innerHTML = `<div style="width:180px;height:180px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:.75rem;color:#999;text-align:center;padding:1rem">QR Code<br/>unavailable</div>`;
+      }
+    } else {
+      document.getElementById('dep-wallet-addr').textContent = 'Wallet address not yet configured by admin.';
+      document.getElementById('qr-container').innerHTML = `<div style="width:180px;height:180px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:.75rem;color:#999;text-align:center;padding:1rem">Address not<br/>configured yet</div>`;
+    }
+
+    document.getElementById('deposit-crypto-select-view').style.display = 'none';
+    document.getElementById('deposit-crypto-wallet-view').style.display = 'block';
+  };
+
+  window.copyWallet = function() {
+    const addr = document.getElementById('dep-wallet-addr').textContent;
+    if(addr && addr !== 'Wallet address not yet configured by admin.') {
+      navigator.clipboard.writeText(addr).then(()=>showToast('Address copied!','success'));
+    }
+  };
+
+  window.submitDeposit = async function() {
+    const cryptoAmt = document.getElementById('dep-crypto-amount').value;
+    const usdAmt    = parseFloat(document.getElementById('dep-usd-amount').value);
+    if(!cryptoAmt||!usdAmt||usdAmt<=0){ showToast('Please enter the deposit amounts','error'); return; }
+    if(!selectedCrypto){ showToast('No crypto selected','error'); return; }
+    try {
+      const txRef = push(ref(db,'transactions'));
+      await set(txRef,{
+        userId: currentUser.uid,
+        type:'deposit', status:'pending',
+        depositMethod: 'crypto',
+        amount: usdAmt,
+        cryptoCoin: selectedCrypto.symbol,
+        cryptoAmount: cryptoAmt,
+        description: `${selectedCrypto.symbol} Crypto Deposit`,
+        createdAt: Date.now(),
+        userEmail: userData.email,
+        userName: `${userData.firstName} ${userData.lastName}`,
+      });
+      document.getElementById('dep-crypto-amount').value = '';
+      document.getElementById('dep-usd-amount').value    = '';
+      showToast('⏳ Waiting for admin to verify. Your account will be credited once confirmed.','info');
+      showPage('history');
+    } catch(e){ showToast(e.message,'error'); }
+  };
+
+  // ════════ SETTINGS ════════
+  window.saveProfile = async function() {
+    const first = document.getElementById('s-first').value.trim();
+    const last  = document.getElementById('s-last').value.trim();
+    const phone = document.getElementById('s-phone').value.trim();
+    if(!first||!last){ showToast('Name fields are required','error'); return; }
+    try {
+      await update(ref(db,`users/${currentUser.uid}`),{firstName:first,lastName:last,phone});
+      userData.firstName=first; userData.lastName=last; userData.phone=phone;
+      renderUserInfo();
+      showToast('Profile updated!','success');
+    } catch(e){ showToast(e.message,'error'); }
+  };
+
+  window.setTheme = function(theme, silent=false) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.querySelectorAll('[id^="theme-"]').forEach(el=>el.classList.remove('selected'));
+    const btn = document.getElementById(`theme-${theme}`);
+    if(btn) btn.classList.add('selected');
+    if(!silent && currentUser) update(ref(db,`users/${currentUser.uid}/settings`),{theme});
+  };
+
+  window.setFont = function(font, silent=false) {
+    document.documentElement.style.setProperty('--font', `'${font}',sans-serif`);
+    document.querySelectorAll('[id^="font-"]').forEach(el=>el.classList.remove('selected'));
+    const key = font.toLowerCase().replace(/\s/g,'');
+    const btn = document.getElementById(`font-${key}`);
+    if(btn) btn.classList.add('selected');
+    if(!silent && currentUser) update(ref(db,`users/${currentUser.uid}/settings`),{font});
+  };
+
+  // ════════ LANGUAGE — FULL TRANSLATION ════════
+  const translations = {
+    en: {
+      nav_dashboard:'Dashboard',nav_send:'Send Money',nav_deposit:'Deposit',nav_history:'History',nav_settings:'Settings',
+      act_send:'Send',act_deposit:'Deposit',act_history:'History',act_settings:'Settings',
+      recent_activity:'Recent Activity',last_5:'Last 5 transactions',view_all:'View all →',no_transactions:'No transactions yet',
+      send_money:'Send Money',send_subtitle:'Choose a transfer method below',available_balance:'Available Balance',
+      select_transfer_type:'SELECT TRANSFER TYPE',domestic_transfer:'Domestic Transfer',domestic_desc:'Within the US — Account & routing number',
+      international_transfer:'International Wire',international_desc:'Global transfers — IBAN, SWIFT & more',
+      zelle:'Zelle',zelle_desc:'Instant US transfer',ach_desc:'Bank-to-bank, 1–3 days',wire_desc:'Same-day, high value',
+      back:'Back',submit_transfer:'Submit Transfer Request',transfer_note:'Transfers are pending until approved by our compliance team.',
+      deposit:'Deposit',deposit_subtitle:"Choose how you'd like to fund your account",
+      bank_transfer:'Bank Transfer',bank_transfer_desc:'Deposit via wire or bank transfer using our account details',
+      crypto_deposit:'Crypto Deposit',crypto_deposit_desc:'Deposit using Bitcoin, Ethereum, or Tether',
+      bank_transfer_details:'Bank Transfer Details',send_to_account:'Send funds to the account details below',
+      bank_details_title:'Navy Federal Receiving Account',admin_configured:'Configured by bank administration',
+      bank_details_pending:'Bank details not yet configured. Please check back later.',
+      after_transfer:'After Completing Your Transfer',amount_sent:'Amount Sent (USD)',reference_note:'Reference / Transaction Note (optional)',
+      i_have_sent:'✓ I Have Sent the Funds',
+      select_crypto:'Select Cryptocurrency',select_crypto_desc:"Choose which coin you're sending",continue:'Continue →',
+      usd_equivalent:'USD Equivalent',i_have_sent_crypto:'✓ I Have Sent It',
+      tx_history:'Transaction History',all_activity:'All your account activity',
+      settings:'Account Settings',settings_subtitle:'Customize your banking experience',
+      account_info:'Account Information',account_number:'Account Number',account_type:'Account Type',
+      profile_info:'Profile Information',first_name:'First Name',last_name:'Last Name',phone:'Phone',email_readonly:'Email (read-only)',
+      save_changes:'Save Changes',appearance:'Appearance',theme:'Theme',font:'Font',
+      language:'Language',language_desc:'Select your preferred interface language',
+      security:'Security',sign_out_all:'Sign out from all devices',sign_out:'Sign Out',
+    },
+    es: {
+      nav_dashboard:'Inicio',nav_send:'Enviar Dinero',nav_deposit:'Depósito',nav_history:'Historial',nav_settings:'Ajustes',
+      act_send:'Enviar',act_deposit:'Depositar',act_history:'Historial',act_settings:'Ajustes',
+      recent_activity:'Actividad Reciente',last_5:'Últimas 5 transacciones',view_all:'Ver todo →',no_transactions:'Sin transacciones aún',
+      send_money:'Enviar Dinero',send_subtitle:'Elige el tipo de transferencia',available_balance:'Saldo Disponible',
+      select_transfer_type:'TIPO DE TRANSFERENCIA',domestic_transfer:'Transferencia Nacional',domestic_desc:'Dentro de EE.UU. — Cuenta y número de ruta',
+      international_transfer:'Transferencia Internacional',international_desc:'Global — IBAN, SWIFT y más',
+      zelle:'Zelle',zelle_desc:'Transferencia instantánea',ach_desc:'Banco a banco, 1–3 días',wire_desc:'Mismo día, alto valor',
+      back:'Atrás',submit_transfer:'Enviar Solicitud',transfer_note:'Las transferencias están pendientes hasta ser aprobadas.',
+      deposit:'Depósito',deposit_subtitle:'Elige cómo financiar tu cuenta',
+      bank_transfer:'Transferencia Bancaria',bank_transfer_desc:'Deposita por transferencia bancaria',
+      crypto_deposit:'Depósito Cripto',crypto_deposit_desc:'Depósita con Bitcoin, Ethereum o Tether',
+      bank_transfer_details:'Detalles de Transferencia Bancaria',send_to_account:'Envía fondos a los datos bancarios abajo',
+      bank_details_title:'Cuenta Receptora Navy Federal',admin_configured:'Configurado por administración',
+      bank_details_pending:'Detalles bancarios no configurados aún.',
+      after_transfer:'Después de Completar tu Transferencia',amount_sent:'Monto Enviado (USD)',reference_note:'Referencia / Nota (opcional)',
+      i_have_sent:'✓ He Enviado los Fondos',
+      select_crypto:'Seleccionar Criptomoneda',select_crypto_desc:'Elige la moneda que enviarás',continue:'Continuar →',
+      usd_equivalent:'Equivalente USD',i_have_sent_crypto:'✓ Ya Lo Envié',
+      tx_history:'Historial de Transacciones',all_activity:'Toda tu actividad',
+      settings:'Configuración',settings_subtitle:'Personaliza tu experiencia',
+      account_info:'Información de Cuenta',account_number:'Número de Cuenta',account_type:'Tipo de Cuenta',
+      profile_info:'Información de Perfil',first_name:'Nombre',last_name:'Apellido',phone:'Teléfono',email_readonly:'Correo (solo lectura)',
+      save_changes:'Guardar Cambios',appearance:'Apariencia',theme:'Tema',font:'Fuente',
+      language:'Idioma',language_desc:'Selecciona tu idioma preferido',
+      security:'Seguridad',sign_out_all:'Cerrar sesión en todos los dispositivos',sign_out:'Cerrar Sesión',
+    },
+    fr: {
+      nav_dashboard:'Tableau de bord',nav_send:'Envoyer',nav_deposit:'Dépôt',nav_history:'Historique',nav_settings:'Paramètres',
+      act_send:'Envoyer',act_deposit:'Déposer',act_history:'Historique',act_settings:'Paramètres',
+      recent_activity:'Activité Récente',last_5:'5 dernières transactions',view_all:'Voir tout →',no_transactions:'Aucune transaction',
+      send_money:'Envoyer de l\'argent',send_subtitle:'Choisissez un type de transfert',available_balance:'Solde Disponible',
+      select_transfer_type:'TYPE DE VIREMENT',domestic_transfer:'Virement Domestique',domestic_desc:'Aux États-Unis',
+      international_transfer:'Virement International',international_desc:'Mondial — IBAN, SWIFT',
+      zelle:'Zelle',zelle_desc:'Transfert instantané',ach_desc:'Banque à banque, 1–3 jours',wire_desc:'Même jour',
+      back:'Retour',submit_transfer:'Soumettre le virement',transfer_note:'En attente d\'approbation.',
+      deposit:'Dépôt',deposit_subtitle:'Choisissez comment alimenter votre compte',
+      bank_transfer:'Virement Bancaire',bank_transfer_desc:'Dépôt par virement',
+      crypto_deposit:'Dépôt Crypto',crypto_deposit_desc:'Dépôt avec Bitcoin, Ethereum ou Tether',
+      bank_transfer_details:'Coordonnées Bancaires',send_to_account:'Envoyez aux coordonnées ci-dessous',
+      bank_details_title:'Compte Récepteur Navy Federal',admin_configured:'Configuré par l\'administration',
+      bank_details_pending:'Coordonnées non configurées.',
+      after_transfer:'Après Votre Virement',amount_sent:'Montant Envoyé (USD)',reference_note:'Référence (optionnel)',
+      i_have_sent:'✓ J\'ai envoyé les fonds',
+      select_crypto:'Sélectionner une Cryptomonnaie',select_crypto_desc:'Choisissez la monnaie',continue:'Continuer →',
+      usd_equivalent:'Équivalent USD',i_have_sent_crypto:'✓ Je l\'ai envoyé',
+      tx_history:'Historique des Transactions',all_activity:'Toute votre activité',
+      settings:'Paramètres',settings_subtitle:'Personnalisez votre expérience',
+      account_info:'Informations du Compte',account_number:'Numéro de Compte',account_type:'Type de Compte',
+      profile_info:'Informations du Profil',first_name:'Prénom',last_name:'Nom',phone:'Téléphone',email_readonly:'Email (lecture seule)',
+      save_changes:'Enregistrer',appearance:'Apparence',theme:'Thème',font:'Police',
+      language:'Langue',language_desc:'Sélectionnez votre langue',
+      security:'Sécurité',sign_out_all:'Déconnexion de tous les appareils',sign_out:'Déconnexion',
+    },
+    de: {
+      nav_dashboard:'Übersicht',nav_send:'Geld Senden',nav_deposit:'Einzahlung',nav_history:'Verlauf',nav_settings:'Einstellungen',
+      act_send:'Senden',act_deposit:'Einzahlen',act_history:'Verlauf',act_settings:'Einstellungen',
+      recent_activity:'Letzte Aktivität',last_5:'Letzte 5 Transaktionen',view_all:'Alle anzeigen →',no_transactions:'Keine Transaktionen',
+      send_money:'Geld Senden',send_subtitle:'Überweisungsart wählen',available_balance:'Verfügbares Guthaben',
+      select_transfer_type:'ÜBERWEISUNGSART',domestic_transfer:'Inlandsüberweisung',domestic_desc:'Innerhalb der USA',
+      international_transfer:'Auslandsüberweisung',international_desc:'Global — IBAN, SWIFT',
+      zelle:'Zelle',zelle_desc:'Sofortüberweisung',ach_desc:'Bank zu Bank, 1–3 Tage',wire_desc:'Gleicher Tag',
+      back:'Zurück',submit_transfer:'Überweisung einreichen',transfer_note:'Ausstehend bis zur Genehmigung.',
+      deposit:'Einzahlung',deposit_subtitle:'Konto aufladen',
+      bank_transfer:'Banküberweisung',bank_transfer_desc:'Per Banküberweisung einzahlen',
+      crypto_deposit:'Krypto-Einzahlung',crypto_deposit_desc:'Mit Bitcoin, Ethereum oder Tether einzahlen',
+      bank_transfer_details:'Bankdaten',send_to_account:'Überweisen Sie an folgende Bankdaten',
+      bank_details_title:'Navy Federal Empfängerkonto',admin_configured:'Von der Verwaltung konfiguriert',
+      bank_details_pending:'Bankdaten noch nicht konfiguriert.',
+      after_transfer:'Nach Ihrer Überweisung',amount_sent:'Gesendeter Betrag (USD)',reference_note:'Referenz (optional)',
+      i_have_sent:'✓ Betrag gesendet',
+      select_crypto:'Kryptowährung Wählen',select_crypto_desc:'Welche Münze senden Sie?',continue:'Weiter →',
+      usd_equivalent:'USD-Äquivalent',i_have_sent_crypto:'✓ Gesendet',
+      tx_history:'Transaktionsverlauf',all_activity:'Alle Kontoaktivitäten',
+      settings:'Einstellungen',settings_subtitle:'Erfahrung anpassen',
+      account_info:'Kontoinformationen',account_number:'Kontonummer',account_type:'Kontotyp',
+      profile_info:'Profilinformationen',first_name:'Vorname',last_name:'Nachname',phone:'Telefon',email_readonly:'E-Mail (schreibgeschützt)',
+      save_changes:'Änderungen speichern',appearance:'Erscheinungsbild',theme:'Thema',font:'Schriftart',
+      language:'Sprache',language_desc:'Bevorzugte Sprache auswählen',
+      security:'Sicherheit',sign_out_all:'Von allen Geräten abmelden',sign_out:'Abmelden',
+    },
+    pt: {
+      nav_dashboard:'Painel',nav_send:'Enviar Dinheiro',nav_deposit:'Depósito',nav_history:'Histórico',nav_settings:'Configurações',
+      act_send:'Enviar',act_deposit:'Depositar',act_history:'Histórico',act_settings:'Configurações',
+      recent_activity:'Atividade Recente',last_5:'Últimas 5 transações',view_all:'Ver tudo →',no_transactions:'Sem transações',
+      send_money:'Enviar Dinheiro',send_subtitle:'Escolha o tipo de transferência',available_balance:'Saldo Disponível',
+      select_transfer_type:'TIPO DE TRANSFERÊNCIA',domestic_transfer:'Transferência Doméstica',domestic_desc:'Dentro dos EUA',
+      international_transfer:'Transferência Internacional',international_desc:'Global — IBAN, SWIFT',
+      zelle:'Zelle',zelle_desc:'Transferência instantânea',ach_desc:'Banco a banco, 1–3 dias',wire_desc:'Mesmo dia',
+      back:'Voltar',submit_transfer:'Enviar Solicitação',transfer_note:'Pendente até aprovação.',
+      deposit:'Depósito',deposit_subtitle:'Como gostaria de financiar sua conta?',
+      bank_transfer:'Transferência Bancária',bank_transfer_desc:'Deposite por transferência bancária',
+      crypto_deposit:'Depósito Cripto',crypto_deposit_desc:'Deposite com Bitcoin, Ethereum ou Tether',
+      bank_transfer_details:'Detalhes da Transferência',send_to_account:'Envie para os dados abaixo',
+      bank_details_title:'Conta Receptora Navy Federal',admin_configured:'Configurado pela administração',
+      bank_details_pending:'Dados bancários não configurados.',
+      after_transfer:'Após Concluir Sua Transferência',amount_sent:'Valor Enviado (USD)',reference_note:'Referência (opcional)',
+      i_have_sent:'✓ Enviei os Fundos',
+      select_crypto:'Selecionar Criptomoeda',select_crypto_desc:'Escolha qual moeda enviar',continue:'Continuar →',
+      usd_equivalent:'Equivalente em USD',i_have_sent_crypto:'✓ Já Enviei',
+      tx_history:'Histórico de Transações',all_activity:'Toda a atividade da conta',
+      settings:'Configurações',settings_subtitle:'Personalize sua experiência',
+      account_info:'Informações da Conta',account_number:'Número da Conta',account_type:'Tipo de Conta',
+      profile_info:'Informações do Perfil',first_name:'Nome',last_name:'Sobrenome',phone:'Telefone',email_readonly:'Email (somente leitura)',
+      save_changes:'Salvar Alterações',appearance:'Aparência',theme:'Tema',font:'Fonte',
+      language:'Idioma',language_desc:'Selecione seu idioma',
+      security:'Segurança',sign_out_all:'Sair de todos os dispositivos',sign_out:'Sair',
+    },
+    zh: {
+      nav_dashboard:'主页',nav_send:'汇款',nav_deposit:'存款',nav_history:'记录',nav_settings:'设置',
+      act_send:'发送',act_deposit:'存款',act_history:'历史',act_settings:'设置',
+      recent_activity:'最近活动',last_5:'最近5笔交易',view_all:'查看全部 →',no_transactions:'暂无交易',
+      send_money:'汇款',send_subtitle:'选择转账方式',available_balance:'可用余额',
+      select_transfer_type:'选择转账类型',domestic_transfer:'国内转账',domestic_desc:'美国境内 — 账户和路由号',
+      international_transfer:'国际汇款',international_desc:'全球 — IBAN、SWIFT',
+      zelle:'Zelle',zelle_desc:'即时美国转账',ach_desc:'银行间，1–3天',wire_desc:'当日，高额',
+      back:'返回',submit_transfer:'提交转账申请',transfer_note:'转账待合规团队审批。',
+      deposit:'存款',deposit_subtitle:'选择充值方式',
+      bank_transfer:'银行转账',bank_transfer_desc:'通过银行转账存款',
+      crypto_deposit:'加密货币存款',crypto_deposit_desc:'使用比特币、以太坊或泰达币存款',
+      bank_transfer_details:'银行转账详情',send_to_account:'请汇款至以下账户',
+      bank_details_title:'Navy Federal 收款账户',admin_configured:'由银行管理员配置',
+      bank_details_pending:'银行详情尚未配置。',
+      after_transfer:'完成转账后',amount_sent:'已汇金额（美元）',reference_note:'备注（可选）',
+      i_have_sent:'✓ 我已汇款',
+      select_crypto:'选择加密货币',select_crypto_desc:'选择您要发送的币种',continue:'继续 →',
+      usd_equivalent:'美元等值',i_have_sent_crypto:'✓ 已发送',
+      tx_history:'交易记录',all_activity:'所有账户活动',
+      settings:'设置',settings_subtitle:'自定义您的体验',
+      account_info:'账户信息',account_number:'账户号码',account_type:'账户类型',
+      profile_info:'个人信息',first_name:'名',last_name:'姓',phone:'电话',email_readonly:'邮箱（只读）',
+      save_changes:'保存更改',appearance:'外观',theme:'主题',font:'字体',
+      language:'语言',language_desc:'选择您的首选语言',
+      security:'安全',sign_out_all:'从所有设备退出',sign_out:'退出',
+    },
+    ar: {
+      nav_dashboard:'لوحة التحكم',nav_send:'إرسال',nav_deposit:'إيداع',nav_history:'السجل',nav_settings:'الإعدادات',
+      act_send:'إرسال',act_deposit:'إيداع',act_history:'السجل',act_settings:'الإعدادات',
+      recent_activity:'النشاط الأخير',last_5:'آخر 5 معاملات',view_all:'عرض الكل →',no_transactions:'لا توجد معاملات',
+      send_money:'إرسال الأموال',send_subtitle:'اختر نوع التحويل',available_balance:'الرصيد المتاح',
+      select_transfer_type:'نوع التحويل',domestic_transfer:'تحويل محلي',domestic_desc:'داخل الولايات المتحدة',
+      international_transfer:'تحويل دولي',international_desc:'عالمي — IBAN، SWIFT',
+      zelle:'Zelle',zelle_desc:'تحويل فوري',ach_desc:'بنك إلى بنك، 1–3 أيام',wire_desc:'نفس اليوم',
+      back:'رجوع',submit_transfer:'إرسال الطلب',transfer_note:'معلق حتى الموافقة.',
+      deposit:'إيداع',deposit_subtitle:'كيف تريد تمويل حسابك؟',
+      bank_transfer:'تحويل بنكي',bank_transfer_desc:'الإيداع عبر تحويل بنكي',
+      crypto_deposit:'إيداع عملات مشفرة',crypto_deposit_desc:'إيداع بالبيتكوين أو الإيثريوم أو التيثر',
+      bank_transfer_details:'تفاصيل التحويل البنكي',send_to_account:'أرسل الأموال إلى التفاصيل أدناه',
+      bank_details_title:'حساب الاستقبال Navy Federal',admin_configured:'مُعد من قِبل الإدارة',
+      bank_details_pending:'لم يتم إعداد التفاصيل البنكية بعد.',
+      after_transfer:'بعد إتمام التحويل',amount_sent:'المبلغ المُرسل (USD)',reference_note:'المرجع (اختياري)',
+      i_have_sent:'✓ أرسلت الأموال',
+      select_crypto:'اختر العملة المشفرة',select_crypto_desc:'اختر العملة التي ستُرسلها',continue:'متابعة →',
+      usd_equivalent:'ما يعادل بالدولار',i_have_sent_crypto:'✓ تم الإرسال',
+      tx_history:'سجل المعاملات',all_activity:'كل نشاط حسابك',
+      settings:'الإعدادات',settings_subtitle:'خصص تجربتك المصرفية',
+      account_info:'معلومات الحساب',account_number:'رقم الحساب',account_type:'نوع الحساب',
+      profile_info:'معلومات الملف الشخصي',first_name:'الاسم الأول',last_name:'اسم العائلة',phone:'الهاتف',email_readonly:'البريد الإلكتروني (للقراءة فقط)',
+      save_changes:'حفظ التغييرات',appearance:'المظهر',theme:'السمة',font:'الخط',
+      language:'اللغة',language_desc:'اختر لغتك المفضلة',
+      security:'الأمان',sign_out_all:'تسجيل الخروج من جميع الأجهزة',sign_out:'تسجيل الخروج',
+    },
+    hi: {
+      nav_dashboard:'डैशबोर्ड',nav_send:'पैसे भेजें',nav_deposit:'जमा',nav_history:'इतिहास',nav_settings:'सेटिंग्स',
+      act_send:'भेजें',act_deposit:'जमा',act_history:'इतिहास',act_settings:'सेटिंग्स',
+      recent_activity:'हालिया गतिविधि',last_5:'पिछले 5 लेनदेन',view_all:'सभी देखें →',no_transactions:'कोई लेनदेन नहीं',
+      send_money:'पैसे भेजें',send_subtitle:'ट्रांसफर का प्रकार चुनें',available_balance:'उपलब्ध शेष',
+      select_transfer_type:'ट्रांसफर प्रकार चुनें',domestic_transfer:'घरेलू ट्रांसफर',domestic_desc:'अमेरिका के भीतर',
+      international_transfer:'अंतर्राष्ट्रीय वायर',international_desc:'वैश्विक — IBAN, SWIFT',
+      zelle:'Zelle',zelle_desc:'तत्काल ट्रांसफर',ach_desc:'बैंक से बैंक, 1–3 दिन',wire_desc:'उसी दिन',
+      back:'वापस',submit_transfer:'ट्रांसफर अनुरोध सबमिट करें',transfer_note:'अनुमोदन तक लंबित।',
+      deposit:'जमा',deposit_subtitle:'अपना खाता कैसे फंड करें?',
+      bank_transfer:'बैंक ट्रांसफर',bank_transfer_desc:'बैंक ट्रांसफर से जमा करें',
+      crypto_deposit:'क्रिप्टो जमा',crypto_deposit_desc:'बिटकॉइन, एथेरियम या टेथर से जमा करें',
+      bank_transfer_details:'बैंक ट्रांसफर विवरण',send_to_account:'नीचे दिए गए विवरण पर भेजें',
+      bank_details_title:'Navy Federal प्राप्त खाता',admin_configured:'बैंक प्रशासन द्वारा कॉन्फ़िगर',
+      bank_details_pending:'बैंक विवरण अभी तक कॉन्फ़िगर नहीं हुए।',
+      after_transfer:'ट्रांसफर के बाद',amount_sent:'भेजी गई राशि (USD)',reference_note:'संदर्भ (वैकल्पिक)',
+      i_have_sent:'✓ मैंने पैसे भेज दिए',
+      select_crypto:'क्रिप्टोकरेंसी चुनें',select_crypto_desc:'कौन सा कॉइन भेजना है?',continue:'जारी रखें →',
+      usd_equivalent:'USD समतुल्य',i_have_sent_crypto:'✓ भेज दिया',
+      tx_history:'लेनदेन इतिहास',all_activity:'सभी खाता गतिविधि',
+      settings:'सेटिंग्स',settings_subtitle:'अपना अनुभव कस्टमाइज़ करें',
+      account_info:'खाता जानकारी',account_number:'खाता संख्या',account_type:'खाता प्रकार',
+      profile_info:'प्रोफ़ाइल जानकारी',first_name:'पहला नाम',last_name:'अंतिम नाम',phone:'फ़ोन',email_readonly:'ईमेल (केवल पढ़ें)',
+      save_changes:'परिवर्तन सहेजें',appearance:'स्वरूप',theme:'थीम',font:'फ़ॉन्ट',
+      language:'भाषा',language_desc:'अपनी पसंदीदा भाषा चुनें',
+      security:'सुरक्षा',sign_out_all:'सभी डिवाइस से साइन आउट',sign_out:'साइन आउट',
+    },
+    yo: {
+      nav_dashboard:'Ibojì',nav_send:'Firanṣẹ Owó',nav_deposit:'Fipamọ́',nav_history:'Ìtàn',nav_settings:'Ètò',
+      act_send:'Firanṣẹ',act_deposit:'Fipamọ́',act_history:'Ìtàn',act_settings:'Ètò',
+      recent_activity:'Ìṣẹ̀lẹ̀ Láìpẹ́',last_5:'Ìgbàgbogbo 5 àkọsílẹ̀',view_all:'Wo gbogbo →',no_transactions:'Kò sí àkọsílẹ̀',
+      send_money:'Firanṣẹ Owó',send_subtitle:'Yan iru ìsànsílẹ̀',available_balance:'Owó Tó Wà',
+      select_transfer_type:'YAN IRU ÌSÀNSÍLẸ̀',domestic_transfer:'Ìsànsílẹ̀ Ìbílẹ̀',domestic_desc:'Nínú Amẹ́ríkà',
+      international_transfer:'Ìsànsílẹ̀ Àgbáyé',international_desc:'Àgbáyé — IBAN, SWIFT',
+      zelle:'Zelle',zelle_desc:'Ìsànsílẹ̀ lẹ́sẹ̀kẹsẹ̀',ach_desc:'Bánkì sí bánkì, 1–3 ọjọ́',wire_desc:'Ọjọ́ kan náà',
+      back:'Padà',submit_transfer:'Firanṣẹ Ìbéèrè',transfer_note:'Dúró títí tí a óo fi fohùn.',
+      deposit:'Fipamọ́ Owó',deposit_subtitle:'Bí o ṣe fẹ́ ṣe owó sí àkọọ́lẹ̀ rẹ',
+      bank_transfer:'Ìsànsílẹ̀ Bánkì',bank_transfer_desc:'Fi owó pamọ́ nípasẹ̀ bánkì',
+      crypto_deposit:'Fipamọ́ Crypto',crypto_deposit_desc:'Fi Bitcoin, Ethereum tàbí Tether pamọ́',
+      bank_transfer_details:'Àwọn Àlàyé Bánkì',send_to_account:'Fi owó ránṣẹ́ sí àwọn àlàyé wọ̀nyí',
+      bank_details_title:'Àkọọ́lẹ̀ Gbigbà Navy Federal',admin_configured:'Tí ìmójútó bánkì ṣètò',
+      bank_details_pending:'Àwọn àlàyé bánkì kò tíì ṣètò.',
+      after_transfer:'Lẹ́yìn Ìsànsílẹ̀ Rẹ',amount_sent:'Iye Tí O Firanṣẹ (USD)',reference_note:'Ìtọ́kasí (àṣàyàn)',
+      i_have_sent:'✓ Mo Ti Firanṣẹ Owó',
+      select_crypto:'Yan Crypto',select_crypto_desc:'Yan iye tí o fẹ́ firanṣẹ',continue:'Tẹ̀síwájú →',
+      usd_equivalent:'Àfidámọ̀ USD',i_have_sent_crypto:'✓ Mo Ti Firanṣẹ',
+      tx_history:'Ìtàn Àkọsílẹ̀',all_activity:'Gbogbo ìgbésẹ̀ àkọọ́lẹ̀',
+      settings:'Ètò',settings_subtitle:'Ṣe àkóso ìrírí rẹ',
+      account_info:'Ìfọ̀rọ̀wánilẹ́nuwò Àkọọ́lẹ̀',account_number:'Nọ́mbà Àkọọ́lẹ̀',account_type:'Irú Àkọọ́lẹ̀',
+      profile_info:'Ìfọ̀rọ̀wánilẹ́nuwò Profaili',first_name:'Orúkọ Àkọ́',last_name:'Orúkọ Ìdílé',phone:'Fóònù',email_readonly:'Ímeèlì (kàwé nìkan)',
+      save_changes:'Tọ́jú Àwọn Ìyípadà',appearance:'Ìrísí',theme:'Àwọ̀ Ìrísí',font:'Irú Lẹ́tà',
+      language:'Èdè',language_desc:'Yan èdè tí o fẹ́',
+      security:'Ààbò',sign_out_all:'Jáde kúrò nínú gbogbo ẹ̀rọ',sign_out:'Jáde',
+    },
+  };
+
+  window.setLang = function(lang, silent=false) {
+    window._currentLang = lang;
+    document.documentElement.lang = lang;
+
+    // Update selected button
+    document.querySelectorAll('[id^="lang-"]').forEach(el=>el.classList.remove('selected'));
+    const btn = document.getElementById(`lang-${lang}`);
+    if(btn) btn.classList.add('selected');
+
+    // Apply translations
+    const t = translations[lang] || translations.en;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if(t[key] !== undefined) el.textContent = t[key];
+    });
+
+    // RTL for Arabic
+    document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+
+    const langLabels = {en:'English',es:'Español',fr:'Français',de:'Deutsch',pt:'Português',zh:'中文',ar:'العربية',hi:'हिंदी',yo:'Yorùbá'};
+    if(!silent) {
+      if(currentUser) update(ref(db,`users/${currentUser.uid}/settings`),{language:lang});
+      showToast(`Language: ${langLabels[lang]||lang}`,'success');
+    }
+  };
+
+  // ════════ CARDS ════════
+  let cardCatalog = {};
+  let selectedCardId = null;
+  let selectedCardData = null;
+
+  function loadCards() {
+    onValue(ref(db,'cardCatalog'), snap => {
+      cardCatalog = snap.val() || {};
+      renderCardCatalog();
+    });
+    onValue(ref(db,'cardApplications'), snap => {
+      const apps = [];
+      snap.forEach(child => {
+        const d = { id: child.key, ...child.val() };
+        if(d.userId === currentUser.uid) apps.push(d);
+      });
+      apps.sort((a,b) => b.createdAt - a.createdAt);
+      renderMyCardApps(apps);
+    });
+  }
+
+  function renderCardCatalog() {
+    const container = document.getElementById('cards-list');
+    const noConfig  = document.getElementById('cards-no-config');
+    const entries = Object.entries(cardCatalog);
+    if(!entries.length) {
+      container.style.display = 'none';
+      noConfig.style.display = 'block';
+      return;
+    }
+    noConfig.style.display = 'none';
+    container.style.display = 'grid';
+    container.innerHTML = entries.map(([id, card]) => `
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:20px;overflow:hidden;transition:all .25s;cursor:default">
+        <!-- Card Visual -->
+        <div style="background:linear-gradient(135deg,var(--navy),var(--navy-mid),#004d3a);padding:1.5rem;position:relative;overflow:hidden;min-height:120px">
+          <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(0,133,124,.4) 0%,transparent 70%)"></div>
+          <div style="position:absolute;bottom:-20px;left:-20px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.2) 0%,transparent 70%)"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative">
+            <div>
+              <div style="font-size:.6rem;letter-spacing:.2em;color:rgba(255,255,255,.5);margin-bottom:.3rem">NAVY FEDERAL</div>
+              <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:white">${card.name||'Card'}</div>
+            </div>
+            <div style="font-size:1.8rem">${card.icon||'💳'}</div>
+          </div>
+          <div style="margin-top:1rem;position:relative">
+            <div style="font-size:.75rem;color:rgba(255,255,255,.4);letter-spacing:.2em">CARD PRICE</div>
+            <div style="font-size:1.4rem;font-weight:700;color:var(--gold)">$${parseFloat(card.price||0).toFixed(2)}</div>
+          </div>
+        </div>
+        <!-- Card Info -->
+        <div style="padding:1.25rem">
+          <p style="font-size:.82rem;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">${card.description||'Premium card with exclusive benefits.'}</p>
+          <button onclick="openCardModal('${id}')" class="btn-primary" style="width:100%;font-size:.85rem;padding:.75rem 1rem">Apply for This Card</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderMyCardApps(apps) {
+    const container = document.getElementById('my-card-apps');
+    if(!apps.length) {
+      container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:.85rem">No card applications yet.</div>`;
+      return;
+    }
+    container.innerHTML = apps.map(app => {
+      const date = new Date(app.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      const sc = app.status === 'approved' ? 'status-approved' : app.status === 'declined' ? 'status-declined' : 'status-pending';
+      return `
+        <div class="card-sm" style="margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem">
+          <div style="display:flex;align-items:center;gap:.85rem">
+            <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,rgba(0,33,71,.6),rgba(0,51,102,.4));display:flex;align-items:center;justify-content:center;font-size:1.3rem">${app.cardIcon||'💳'}</div>
+            <div>
+              <div style="font-weight:600;font-size:.875rem;color:var(--text)">${app.cardName||'Card'}</div>
+              <div style="font-size:.72rem;color:var(--text-muted);margin-top:.1rem">${date} · $${parseFloat(app.cardPrice||0).toFixed(2)}</div>
+            </div>
+          </div>
+          <span class="status-badge ${sc}">${app.status}</span>
+        </div>`;
+    }).join('');
+  }
+
+  window.openCardModal = async function(cardId) {
+    const card = cardCatalog[cardId];
+    if(!card) return;
+    selectedCardId = cardId;
+    selectedCardData = card;
+
+    const balSnap = await get(ref(db,`users/${currentUser.uid}/balance`));
+    const bal = balSnap.val()||0;
+
+    document.getElementById('card-modal-name').textContent  = card.name || 'Card';
+    document.getElementById('card-modal-desc').textContent  = card.description || '';
+    document.getElementById('card-modal-price').textContent = `$${parseFloat(card.price||0).toFixed(2)}`;
+    document.getElementById('card-modal-price2').textContent= `$${parseFloat(card.price||0).toFixed(2)}`;
+    document.getElementById('card-modal-balance').textContent = `$${bal.toFixed(2)}`;
+    document.getElementById('card-modal-icon').textContent  = card.icon || '💳';
+    document.getElementById('card-modal-icon-wrap').style.background = 'linear-gradient(135deg,rgba(0,33,71,.5),rgba(0,51,102,.3))';
+
+    const price = parseFloat(card.price||0);
+    const applyBtn = document.querySelector('#card-apply-modal .btn-primary');
+    if(bal < price) {
+      applyBtn.disabled = true;
+      applyBtn.style.opacity = '.4';
+      applyBtn.style.cursor = 'not-allowed';
+      applyBtn.textContent = 'Insufficient Balance';
+    } else {
+      applyBtn.disabled = false;
+      applyBtn.style.opacity = '1';
+      applyBtn.style.cursor = 'pointer';
+      applyBtn.textContent = 'Apply Now';
+    }
+
+    document.getElementById('card-apply-modal').classList.add('open');
+  };
+
+  window.closeCardModal = function() {
+    document.getElementById('card-apply-modal').classList.remove('open');
+    selectedCardId = null; selectedCardData = null;
+  };
+
+  window.confirmCardApplication = async function() {
+    if(!selectedCardId || !selectedCardData) return;
+    const balSnap = await get(ref(db,`users/${currentUser.uid}/balance`));
+    const bal = balSnap.val()||0;
+    const price = parseFloat(selectedCardData.price||0);
+    if(bal < price) {
+      showToast('Insufficient balance to apply for this card.','error'); return;
+    }
+    try {
+      const appRef = push(ref(db,'cardApplications'));
+      await set(appRef,{
+        userId: currentUser.uid,
+        cardId: selectedCardId,
+        cardName: selectedCardData.name,
+        cardPrice: price,
+        cardIcon: selectedCardData.icon || '💳',
+        status: 'pending',
+        createdAt: Date.now(),
+        userEmail: userData.email,
+        userName: `${userData.firstName} ${userData.lastName}`,
+      });
+      closeCardModal();
+      showToast('Card application submitted! Awaiting admin approval.','success');
+    } catch(e){ showToast(e.message,'error'); }
+  };
+
+  // ════════ LOANS ════════
+  window.submitLoanApplication = async function() {
+    const type       = document.getElementById('loan-type').value;
+    const amount     = parseFloat(document.getElementById('loan-amount').value||0);
+    const term       = document.getElementById('loan-term').value;
+    const purpose    = document.getElementById('loan-purpose').value.trim();
+    const income     = parseFloat(document.getElementById('loan-income').value||0);
+    const employment = document.getElementById('loan-employment').value;
+
+    if(!type||!amount||!term||!purpose||!income||!employment) {
+      showToast('Please fill in all required fields.','error'); return;
+    }
+    if(amount < 500) { showToast('Minimum loan amount is $500.','error'); return; }
+
+    try {
+      const loanRef = push(ref(db,'loanApplications'));
+      await set(loanRef,{
+        userId: currentUser.uid,
+        loanType: type,
+        amount, term: parseInt(term), purpose, annualIncome: income, employment,
+        status: 'pending',
+        createdAt: Date.now(),
+        userEmail: userData.email,
+        userName: `${userData.firstName} ${userData.lastName}`,
+      });
+
+      // Clear form
+      document.getElementById('loan-type').value = '';
+      document.getElementById('loan-amount').value = '';
+      document.getElementById('loan-term').value = '';
+      document.getElementById('loan-purpose').value = '';
+      document.getElementById('loan-income').value = '';
+      document.getElementById('loan-employment').value = '';
+
+      showToast('Loan application submitted! Awaiting admin review.','success');
+    } catch(e){ showToast(e.message,'error'); }
+  };
+
+  function loadLoanApplications() {
+    onValue(ref(db,'loanApplications'), snap => {
+      const apps = [];
+      snap.forEach(child => {
+        const d = { id: child.key, ...child.val() };
+        if(d.userId === currentUser.uid) apps.push(d);
+      });
+      apps.sort((a,b) => b.createdAt - a.createdAt);
+      renderMyLoanApps(apps);
+    });
+  }
+
+  function renderMyLoanApps(apps) {
+    const container = document.getElementById('my-loan-apps');
+    if(!apps.length) {
+      container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:.85rem">No loan applications yet.</div>`;
+      return;
+    }
+    const typeLabels = {personal:'Personal Loan',auto:'Auto Loan',home:'Home/Mortgage',student:'Student Loan',business:'Business Loan'};
+    container.innerHTML = apps.map(app => {
+      const date = new Date(app.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      const sc = app.status === 'approved' ? 'status-approved' : app.status === 'declined' ? 'status-declined' : 'status-pending';
+      const termLabel = app.term ? `${app.term} mo` : '';
+      return `
+        <div class="card-sm" style="margin-bottom:.75rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:.85rem">
+              <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.08));display:flex;align-items:center;justify-content:center;font-size:1.2rem;border:1px solid rgba(201,168,76,.25)">💰</div>
+              <div>
+                <div style="font-weight:600;font-size:.875rem;color:var(--text)">${typeLabels[app.loanType]||app.loanType}</div>
+                <div style="font-size:.72rem;color:var(--text-muted);margin-top:.1rem">${date}${termLabel ? ' · '+termLabel : ''}</div>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-weight:700;font-size:.95rem;color:var(--text)">$${parseFloat(app.amount||0).toFixed(2)}</div>
+              <span class="status-badge ${sc}">${app.status}</span>
+            </div>
+          </div>
+          ${app.purpose ? `<p style="font-size:.78rem;color:var(--text-muted);margin-top:.65rem;padding-top:.65rem;border-top:1px solid var(--border)">${app.purpose}</p>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  // ════════ SIGN OUT ════════
+  window.authSignOut = function() {
+    signOut(auth).then(()=>{ window.location.href='login.html'; });
+  };
+
+  window.resendVerification = async function() {
+    const user = auth.currentUser;
+    if(!user) return;
+    try {
+      await sendEmailVerification(user, { url: window.location.origin+'/verify.html', handleCodeInApp:false });
+      showToast('Verification email sent! Check your inbox.','success');
+    } catch(e) {
+      showToast(e.message || 'Failed to send. Please wait and try again.','error');
+    }
+  };
+
+  window.copyAccountNumber = function() {
+    const acct = userData && userData.accountNumber ? userData.accountNumber : '';
+    if(!acct) return;
+    navigator.clipboard.writeText(acct).then(()=>showToast('Account number copied!','success'));
+  };
+
+  document.getElementById('topbar-date').textContent =
+    new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+</script>
+
+<!-- UI Helpers -->
+<script>
+  window.addEventListener('load', () => {});
+
+  let toastTimer;
+  function showToast(msg, type='info') {
+    const t = document.getElementById('toast');
+    const icons = { success:'✓', error:'✕', info:'ℹ' };
+    t.innerHTML = `<span style="font-size:1rem;opacity:.85">${icons[type]||'ℹ'}</span><span>${msg}</span>`;
+    t.className = `toast ${type} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove('show'), 5000);
+  }
+  window.showToast = showToast;
+
+  function showPage(page) {
+    document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+    const pageEl = document.getElementById(`page-${page}`);
+    if(pageEl) pageEl.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    const navEl = document.getElementById(`nav-${page}`);
+    if(navEl) navEl.classList.add('active');
+    closeSidebar();
+    window.scrollTo(0,0);
+
+    // Reset deposit page when navigating to it
+    if(page === 'deposit') {
+      document.getElementById('deposit-method-select').style.display = 'block';
+      document.getElementById('deposit-bank-view').style.display = 'none';
+      document.getElementById('deposit-crypto-select-view').style.display = 'none';
+      document.getElementById('deposit-crypto-wallet-view').style.display = 'none';
+    }
+    // Reset transfer page
+    if(page === 'transfer') {
+      document.getElementById('transfer-type-view').style.display = 'block';
+      document.getElementById('transfer-form-view').style.display = 'none';
+    }
+    // Loan/card pages just display — no reset needed
+  }
+  window.showPage = showPage;
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('show');
+  }
+  function checkMobile() {
+    const isMobile = window.innerWidth <= 768;
+    document.getElementById('menu-btn').style.display = isMobile ? 'block' : 'none';
+    if(!isMobile) {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('show');
+    }
+  }
+  window.addEventListener('resize', checkMobile);
+  checkMobile();
+</script>
+
+<!-- Begin of Chaport Live Chat code -->
+<script type="text/javascript">
+(function(w,d,v3){
+w.chaportConfig = {
+  appId : '69e74e87b51a89099604f483',
+};
+
+if(w.chaport)return;v3=w.chaport={};v3._q=[];v3._l={};v3.q=function(){v3._q.push(arguments)};v3.on=function(e,fn){if(!v3._l[e])v3._l[e]=[];v3._l[e].push(fn)};var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://app.chaport.com/javascripts/insert.js';var ss=d.getElementsByTagName('script')[0];ss.parentNode.insertBefore(s,ss)})(window, document);
+</script>
+<!-- End of Chaport Live Chat code -->
+
+</body>
+</html>

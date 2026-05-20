@@ -1,0 +1,3074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Navy Federal Credit Union</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy: #002147;
+      --navy-mid: #003366;
+      --teal: #00857C;
+      --teal-light: #00A896;
+      --gold: #C9A84C;
+      --cream: #F8F5F0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+
+    /* ── PRELOADER ─────────────────────────────────────────────── */
+    #preloader {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--navy);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 2rem;
+      transition: opacity 0.7s ease, visibility 0.7s ease;
+    }
+    #preloader.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .loader-logo {
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+      animation: fadeInDown 0.8s ease forwards;
+    }
+    .loader-anchor {
+      width: 60px; height: 60px;
+      animation: anchorSpin 2s cubic-bezier(.6,0,.4,1) infinite;
+    }
+    .loader-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem; letter-spacing: 0.15em;
+      color: white; text-transform: uppercase;
+    }
+    .loader-sub {
+      font-size: 0.65rem; letter-spacing: 0.3em;
+      color: var(--gold); text-transform: uppercase;
+    }
+
+    /* Progress bar */
+    .progress-wrap {
+      width: 220px; height: 2px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 99px; overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--teal), var(--gold));
+      border-radius: 99px;
+      animation: load 2.2s cubic-bezier(.4,0,.2,1) forwards;
+    }
+    .progress-label {
+      font-size: 0.7rem; letter-spacing: 0.2em;
+      color: rgba(255,255,255,0.4);
+      animation: fadeInDown 0.8s 0.3s ease forwards; opacity: 0;
+    }
+
+    @keyframes load { 0%{width:0%} 80%{width:90%} 100%{width:100%} }
+    @keyframes anchorSpin {
+      0%   { transform: translateY(0) rotate(0deg); }
+      25%  { transform: translateY(-8px) rotate(-10deg); }
+      75%  { transform: translateY(4px) rotate(10deg); }
+      100% { transform: translateY(0) rotate(0deg); }
+    }
+    @keyframes fadeInDown {
+      from { opacity:0; transform:translateY(-12px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes slideRight {
+      from { opacity:0; transform:translateX(-30px); }
+      to   { opacity:1; transform:translateX(0); }
+    }
+
+    /* ── SITE (hidden until loaded) ─────────────────────────────── */
+    #site { opacity: 0; transition: opacity 0.7s ease 0.1s; }
+    #site.show { opacity: 1; }
+
+    /* ── NAV ──────────────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      transition: background 0.4s, box-shadow 0.4s;
+    }
+    nav.scrolled {
+      background: rgba(0,33,71,0.97);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+    .nav-inner {
+      max-width: 1280px; margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 68px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 0.6rem;
+      text-decoration: none;
+    }
+    .nav-logo-icon { width: 36px; height: 36px; }
+    .nav-brand {
+      font-family: 'Playfair Display', serif;
+      color: white; font-size: 0.95rem;
+      letter-spacing: 0.04em; line-height: 1.2;
+    }
+    .nav-brand span { display: block; font-size: 0.6rem; letter-spacing: 0.18em; color: var(--gold); font-family: 'DM Sans', sans-serif; font-weight: 500; }
+
+    .nav-links { display: flex; gap: 0.25rem; }
+    .nav-links a {
+      color: rgba(255,255,255,0.82); font-size: 0.82rem;
+      padding: 0.4rem 0.85rem; border-radius: 6px;
+      text-decoration: none; font-weight: 500;
+      transition: color 0.2s, background 0.2s;
+      letter-spacing: 0.02em;
+    }
+    .nav-links a:hover { color: white; background: rgba(255,255,255,0.08); }
+
+    .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .btn-login {
+      color: white; font-size: 0.82rem; font-weight: 500;
+      padding: 0.45rem 1rem; border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.3);
+      cursor: pointer; background: transparent;
+      transition: all 0.2s; letter-spacing: 0.02em;
+    }
+    .btn-login:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); }
+    .btn-cta {
+      background: var(--teal); color: white;
+      font-size: 0.82rem; font-weight: 600;
+      padding: 0.5rem 1.1rem; border-radius: 7px;
+      border: none; cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      letter-spacing: 0.02em; white-space: nowrap;
+    }
+    .btn-cta:hover { background: var(--teal-light); transform: translateY(-1px); }
+
+    /* hamburger */
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+    .hamburger span { display: block; width: 24px; height: 2px; background: white; border-radius: 2px; transition: all 0.3s; }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* mobile menu */
+    .mobile-menu {
+      position: fixed; top: 68px; left: 0; right: 0; z-index: 99;
+      background: rgba(0,33,71,0.98); backdrop-filter: blur(16px);
+      padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);
+      transform: translateY(-120%); transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+    }
+    .mobile-menu.open { transform: translateY(0); }
+    .mobile-menu a {
+      display: block; color: rgba(255,255,255,0.85); font-size: 1rem;
+      padding: 0.85rem 0; border-bottom: 1px solid rgba(255,255,255,0.07);
+      text-decoration: none; font-weight: 500;
+    }
+    .mobile-menu .mob-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+    .mobile-menu .btn-login, .mobile-menu .btn-cta { flex: 1; text-align: center; font-size: 0.9rem; padding: 0.7rem; }
+
+    /* ── HERO ─────────────────────────────────────────────────────── */
+    .hero {
+      position: relative; min-height: 100vh;
+      display: flex; align-items: center;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, #001830 0%, #002147 35%, #003a2a 100%);
+    }
+    /* ocean texture overlay */
+    .hero-bg::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 65% 50%, rgba(0,133,124,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 80% at 20% 80%, rgba(0,51,102,0.4) 0%, transparent 60%);
+    }
+    .hero-bg::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+    }
+
+    /* bokeh blobs */
+    .bokeh { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.25; animation: float 8s ease-in-out infinite; }
+    .bokeh-1 { width: 400px; height: 400px; background: var(--teal); top: -100px; right: 10%; animation-delay: 0s; }
+    .bokeh-2 { width: 300px; height: 300px; background: var(--navy-mid); bottom: 0; left: 5%; animation-delay: -3s; }
+    .bokeh-3 { width: 200px; height: 200px; background: var(--gold); top: 40%; right: 25%; animation-delay: -5s; opacity: 0.1; }
+    @keyframes float {
+      0%,100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-30px) scale(1.05); }
+    }
+
+    .hero-content {
+      position: relative; z-index: 2;
+      max-width: 1280px; margin: 0 auto;
+      padding: 6rem 1.5rem 3rem;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 3rem; align-items: center; width: 100%;
+    }
+
+    .hero-text { animation: slideRight 0.9s 0.3s ease both; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3);
+      color: var(--gold); font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      padding: 0.35rem 0.85rem; border-radius: 99px; margin-bottom: 1.5rem;
+    }
+    .hero-badge::before { content:''; width:6px; height:6px; background:var(--gold); border-radius:50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      color: white; line-height: 1.15;
+      margin-bottom: 1.25rem;
+    }
+    .hero-title em { color: var(--teal-light); font-style: normal; }
+
+    .hero-subtitle {
+      color: rgba(255,255,255,0.7); font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+      line-height: 1.7; max-width: 440px; margin-bottom: 2.25rem;
+    }
+
+    .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--teal); color: white; font-weight: 600;
+      padding: 0.85rem 1.8rem; border-radius: 8px; border: none;
+      cursor: pointer; font-size: 0.9rem; letter-spacing: 0.03em;
+      transition: all 0.25s; box-shadow: 0 8px 24px rgba(0,133,124,0.35);
+    }
+    .btn-primary:hover { background: var(--teal-light); transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,133,124,0.45); }
+    .btn-secondary {
+      background: transparent; color: white; font-weight: 500;
+      padding: 0.85rem 1.8rem; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.35);
+      cursor: pointer; font-size: 0.9rem;
+      transition: all 0.25s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.08); border-color: white; }
+
+    .hero-trust {
+      margin-top: 2.5rem; display: flex; align-items: center; gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .trust-item { display: flex; align-items: center; gap: 0.5rem; color: rgba(255,255,255,0.55); font-size: 0.78rem; }
+    .trust-item svg { color: var(--gold); }
+    .trust-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.15); }
+
+    /* ── PHONE MOCKUP ─────────────────────────────────────────────── */
+    .hero-phone { display: flex; justify-content: center; align-items: flex-end; animation: fadeInUp 1s 0.5s ease both; }
+    .phone-wrap {
+      position: relative;
+      filter: drop-shadow(0 40px 80px rgba(0,0,0,0.5));
+    }
+    .phone-frame {
+      width: 240px; background: #111;
+      border-radius: 40px;
+      border: 8px solid #222;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 0 0 1px #333, 0 0 0 1px #1a1a1a;
+    }
+    .phone-notch {
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 90px; height: 26px; background: #111;
+      border-radius: 0 0 18px 18px; z-index: 10;
+    }
+    .phone-screen {
+      background: #f5f7fa; padding: 36px 12px 16px;
+      min-height: 480px;
+    }
+    .phone-status {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 4px 8px; font-size: 0.65rem; color: #333; font-weight: 600;
+    }
+    .phone-app-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 4px 2px 12px;
+    }
+    .app-header-title { font-size: 0.7rem; color: #888; font-weight: 500; }
+    .app-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--teal), var(--navy)); }
+
+    .balance-card {
+      background: linear-gradient(135deg, var(--navy) 0%, #004080 100%);
+      border-radius: 16px; padding: 16px; margin-bottom: 14px;
+      color: white; position: relative; overflow: hidden;
+    }
+    .balance-card::before {
+      content: ''; position: absolute; top: -20px; right: -20px;
+      width: 100px; height: 100px; border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+    }
+    .balance-label { font-size: 0.6rem; color: rgba(255,255,255,0.6); margin-bottom: 4px; letter-spacing: 0.05em; }
+    .balance-amount { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 2px; }
+    .balance-sub { font-size: 0.58rem; color: rgba(255,255,255,0.5); }
+
+    .quick-actions {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 14px;
+    }
+    .qa-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .qa-icon {
+      width: 36px; height: 36px; border-radius: 12px;
+      background: white; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .qa-icon svg { width: 16px; height: 16px; }
+    .qa-label { font-size: 0.5rem; color: #555; font-weight: 500; }
+
+    .transactions { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .tx-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: white; border-radius: 10px; padding: 8px 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .tx-left { display: flex; align-items: center; gap: 8px; }
+    .tx-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+    .tx-info {}
+    .tx-name { font-size: 0.6rem; font-weight: 600; color: #222; }
+    .tx-date { font-size: 0.5rem; color: #aaa; }
+    .tx-amount { font-size: 0.65rem; font-weight: 700; }
+    .tx-neg { color: #e74c3c; }
+    .tx-pos { color: #2ecc71; }
+
+    .budget-card {
+      background: white; border-radius: 12px; padding: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    }
+    .budget-title { font-size: 0.6rem; font-weight: 600; color: #333; margin-bottom: 8px; }
+    .budget-bar-wrap { height: 6px; background: #eee; border-radius: 99px; overflow: hidden; margin-bottom: 4px; }
+    .budget-bar { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--teal), var(--teal-light)); width: 65%; }
+    .budget-meta { display: flex; justify-content: space-between; }
+    .budget-meta span { font-size: 0.55rem; color: #888; }
+
+    /* chart bars */
+    .mini-chart { display: flex; align-items: flex-end; gap: 3px; height: 36px; margin-top: 8px; }
+    .bar { border-radius: 3px 3px 0 0; width: 100%; }
+    .bar-income { background: var(--teal); opacity: 0.85; }
+    .bar-expense { background: var(--gold); opacity: 0.7; }
+
+    /* phone glow */
+    .phone-glow {
+      position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%);
+      width: 180px; height: 50px;
+      background: var(--teal); filter: blur(35px); opacity: 0.4;
+      border-radius: 50%;
+    }
+
+    /* floating chips */
+    .chip {
+      position: absolute; background: white; border-radius: 12px;
+      padding: 8px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      display: flex; align-items: center; gap: 8px;
+      animation: chipFloat 4s ease-in-out infinite;
+    }
+    .chip-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .chip-text { font-size: 0.65rem; }
+    .chip-label { color: #888; display: block; }
+    .chip-value { color: #222; font-weight: 700; display: block; }
+    .chip-1 { top: 15%; right: -50px; animation-delay: 0s; }
+    .chip-2 { bottom: 22%; left: -55px; animation-delay: -2s; }
+    @keyframes chipFloat {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* ── STATS BAR ──────────────────────────────────────────────── */
+    .stats-bar {
+      background: var(--navy);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .stats-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; justify-content: space-around; flex-wrap: wrap;
+      padding: 2rem 1.5rem; gap: 1.5rem;
+    }
+    .stat-item { text-align: center; }
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; color: white; font-weight: 700;
+    }
+    .stat-number span { color: var(--gold); }
+    .stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; margin-top: 0.2rem; }
+
+    /* ── FEATURES ───────────────────────────────────────────────── */
+    .features { background: var(--cream); padding: 5rem 1.5rem; }
+    .section-header { text-align: center; margin-bottom: 3.5rem; }
+    .section-eyebrow {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--teal); margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 3.5vw, 2.75rem); color: var(--navy); line-height: 1.2;
+    }
+    .features-grid {
+      max-width: 1280px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem;
+    }
+    .feature-card {
+      background: white; border-radius: 16px; padding: 2rem;
+      border: 1px solid rgba(0,33,71,0.07);
+      transition: transform 0.3s, box-shadow 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--teal), var(--gold));
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.3s;
+    }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,33,71,0.1); }
+    .feature-card:hover::before { transform: scaleX(1); }
+    .feature-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(0,133,124,0.12), rgba(0,33,71,0.08));
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.25rem;
+    }
+    .feature-icon svg { width: 22px; height: 22px; color: var(--teal); }
+    .feature-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--navy); margin-bottom: 0.6rem; }
+    .feature-desc { font-size: 0.85rem; color: #666; line-height: 1.65; }
+
+    /* ── FOOTER (minimal) ───────────────────────────────────────── */
+    .footer {
+      background: #001020; padding: 2rem 1.5rem;
+      text-align: center; color: rgba(255,255,255,0.3); font-size: 0.75rem;
+    }
+    .footer a { color: rgba(255,255,255,0.4); text-decoration: none; margin: 0 0.5rem; }
+    .footer a:hover { color: var(--gold); }
+
+    /* ── SAVE FLEXIBLY SECTION ──────────────────────────────────── */
+    .save-section {
+      background: #f0ede8;
+      overflow: hidden;
+      margin-top: 5rem;
+      border-radius: 24px 24px 0 0;
+    }
+    .save-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr;
+      align-items: center; min-height: 560px;
+    }
+
+    /* left text */
+    .save-text-col {
+      padding: 5rem 3rem 5rem 4rem;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .save-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 3.8vw, 3.2rem);
+      color: #111; line-height: 1.18; margin-bottom: 1.2rem;
+    }
+    .save-title sup {
+      font-size: 0.45em; vertical-align: super; color: #888;
+    }
+    .save-desc {
+      font-size: clamp(0.82rem, 1.2vw, 0.95rem);
+      color: #555; line-height: 1.75;
+      max-width: 340px; margin-bottom: 1.75rem;
+    }
+    .save-cta {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      color: var(--teal); font-size: 0.88rem; font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1.5px solid var(--teal);
+      padding-bottom: 2px; width: fit-content;
+      transition: gap 0.2s, color 0.2s;
+    }
+    .save-cta:hover { gap: 0.7rem; color: var(--teal-light); border-color: var(--teal-light); }
+    .save-cta svg { width: 14px; height: 14px; }
+
+    /* right media column — real image */
+    .save-media-col {
+      position: relative; height: 100%; min-height: 560px;
+      display: flex; align-items: stretch;
+    }
+    .save-photo-wrap {
+      width: 100%; position: relative; overflow: hidden;
+    }
+    .save-real-img {
+      width: 100%; height: 100%; object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+    /* subtle dark vignette so phone pops */
+    .save-photo-wrap::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.22) 100%);
+      pointer-events: none;
+    }
+
+    /* floating phone over the photo */
+    .save-floating-phone {
+      position: absolute;
+      bottom: 8%; right: 10%;
+      z-index: 5;
+      filter: drop-shadow(0 24px 48px rgba(0,0,0,0.5));
+      transform: rotate(3deg);
+      animation: savePhoneFloat 5s ease-in-out infinite;
+    }
+    @keyframes savePhoneFloat {
+      0%,100% { transform: rotate(3deg) translateY(0); }
+      50% { transform: rotate(3deg) translateY(-10px); }
+    }
+
+    .sfp-frame {
+      width: 140px;
+      background: #111;
+      border-radius: 26px;
+      border: 5px solid #1e1e1e;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px #2a2a2a;
+      position: relative;
+    }
+    .sfp-notch {
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 55px; height: 16px; background: #111;
+      border-radius: 0 0 10px 10px; z-index: 10;
+    }
+    .sfp-screen {
+      background: #fff;
+      padding: 22px 10px 10px;
+    }
+    .sfp-status {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 6px;
+    }
+    .sfp-label {
+      font-size: 0.52rem; color: #999; font-weight: 500; margin-bottom: 2px;
+    }
+    .sfp-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem; font-weight: 700; color: #111;
+      line-height: 1; margin-bottom: 4px;
+    }
+    .sfp-apy-badge {
+      display: inline-block;
+      background: rgba(0,133,124,0.12);
+      color: var(--teal); font-size: 0.48rem; font-weight: 700;
+      padding: 2px 6px; border-radius: 99px;
+      margin-bottom: 6px; letter-spacing: 0.04em;
+    }
+    .sfp-chart {
+      width: 100%; height: 40px; display: block; margin-bottom: 3px;
+    }
+    .sfp-months {
+      display: flex; justify-content: space-between;
+      font-size: 0.4rem; color: #bbb; margin-bottom: 6px; padding: 0 2px;
+    }
+    .sfp-earned {
+      display: flex; align-items: center; gap: 5px;
+      background: #f8f8f8; border-radius: 7px; padding: 5px 6px;
+    }
+    .sfp-earned-icon {
+      width: 18px; height: 18px; border-radius: 5px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-light));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.45rem; color: white; flex-shrink: 0;
+    }
+
+    /* responsive */
+    @media (max-width: 768px) {
+      .save-section { margin-top: 3rem; border-radius: 16px 16px 0 0; }
+      .save-inner { grid-template-columns: 1fr; min-height: auto; }
+      .save-text-col { padding: 3rem 1.5rem 2rem; text-align: center; align-items: center; }
+      .save-desc { margin-left: auto; margin-right: auto; }
+      .save-media-col { min-height: 380px; }
+      .save-floating-phone { right: 6%; bottom: 6%; }
+    }
+    @media (max-width: 480px) {
+      .save-section { margin-top: 2rem; }
+      .save-title { font-size: 1.8rem; }
+      .save-media-col { min-height: 300px; }
+      .sfp-frame { width: 115px; }
+    }
+
+    /* ── FREE BANKING SECTION ───────────────────────────────────── */
+    .free-banking {
+      background: #d8f0ed;
+      padding: 0;
+      overflow: hidden;
+    }
+    .free-banking-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr;
+      align-items: flex-end; gap: 0;
+    }
+
+    /* left — phone column */
+    .fb-phone-col {
+      display: flex; justify-content: center; align-items: flex-end;
+      padding: 4rem 2rem 0;
+    }
+    .fb-phone-wrap {
+      position: relative;
+      filter: drop-shadow(0 30px 60px rgba(0,0,0,0.18));
+    }
+    .fb-phone-frame {
+      width: 230px;
+      background: #fff;
+      border-radius: 38px;
+      border: 7px solid #1a1a1a;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px #2a2a2a;
+    }
+    .fb-phone-notch {
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 85px; height: 24px; background: #1a1a1a;
+      border-radius: 0 0 16px 16px; z-index: 10;
+    }
+    .fb-screen {
+      background: #f5f7fa;
+      padding: 32px 12px 0;
+      min-height: 460px;
+    }
+
+    /* right — text column */
+    .fb-text-col {
+      padding: 5rem 4rem 5rem 3rem;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .fb-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.9rem, 3.5vw, 3rem);
+      color: #111; line-height: 1.2; margin-bottom: 1.25rem;
+    }
+    .fb-desc {
+      font-size: clamp(0.85rem, 1.3vw, 1rem);
+      color: #444; line-height: 1.7;
+      max-width: 380px; margin-bottom: 1.75rem;
+    }
+    .fb-cta {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      color: var(--teal); font-size: 0.9rem; font-weight: 600;
+      text-decoration: none; letter-spacing: 0.01em;
+      border-bottom: 1.5px solid var(--teal);
+      padding-bottom: 2px; width: fit-content;
+      transition: gap 0.2s, color 0.2s;
+    }
+    .fb-cta:hover { gap: 0.7rem; color: var(--teal-light); border-color: var(--teal-light); }
+    .fb-cta svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* perks list */
+    .fb-perks {
+      display: flex; flex-direction: column; gap: 0.65rem;
+      margin-bottom: 2rem;
+    }
+    .fb-perk {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.85rem; color: #333;
+    }
+    .fb-perk-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--teal); flex-shrink: 0;
+    }
+
+    /* phone screen internals for fb mockup */
+    .fb-status {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 4px 6px; font-size: 0.62rem; color: #333; font-weight: 600;
+    }
+    .fb-home-label {
+      font-size: 1rem; font-weight: 700; color: #111;
+      padding: 4px 4px 8px;
+    }
+    .fb-account-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 2px 10px;
+    }
+    .fb-account-icon {
+      width: 32px; height: 32px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--teal), #005f58);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .fb-account-info { flex: 1; }
+    .fb-account-name { font-size: 0.65rem; font-weight: 600; color: #111; }
+    .fb-account-sub { font-size: 0.55rem; color: #aaa; }
+    .fb-add-btn {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2px solid #ccc; display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+
+    .fb-balance-row {
+      padding: 0 2px 6px;
+    }
+    .fb-bal-label { font-size: 0.55rem; color: #aaa; margin-bottom: 2px; }
+    .fb-bal-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem; font-weight: 700; color: #111; margin-bottom: 8px;
+    }
+    .fb-cards-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: white; border-radius: 6px; padding: 3px 8px;
+      font-size: 0.55rem; font-weight: 600; color: #333;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08); float: right; margin-top: -28px;
+    }
+    .fb-divider { height: 1px; background: #e8e8e8; margin: 6px 0 10px; }
+
+    .fb-tx { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+    .fb-tx-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 5px 4px;
+    }
+    .fb-tx-left { display: flex; align-items: center; gap: 8px; }
+    .fb-tx-icon {
+      width: 26px; height: 26px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+    }
+    .fb-tx-name { font-size: 0.6rem; font-weight: 600; color: #222; }
+    .fb-tx-amt { font-size: 0.62rem; font-weight: 700; color: #333; }
+
+    /* bottom budget+chart area */
+    .fb-bottom {
+      background: white; border-radius: 14px 14px 0 0;
+      padding: 10px 10px 0; margin-top: 4px;
+    }
+    .fb-chart-row { display: flex; align-items: flex-end; gap: 6px; margin-bottom: 8px; }
+    .fb-chart-legend {
+      display: flex; gap: 8px; align-items: center;
+      font-size: 0.48rem; color: #888; margin-bottom: 4px;
+    }
+    .fb-legend-dot { width: 5px; height: 5px; border-radius: 50%; }
+    .fb-bars { display: flex; align-items: flex-end; gap: 2px; }
+    .fb-bar-group { display: flex; gap: 1px; align-items: flex-end; }
+    .fb-bar { border-radius: 2px 2px 0 0; width: 8px; }
+    .fb-bar-i { background: var(--teal); }
+    .fb-bar-e { background: #f0c070; }
+    .fb-bar-labels { display: flex; gap: 8px; }
+    .fb-bar-label { font-size: 0.45rem; color: #aaa; width: 17px; text-align: center; }
+
+    .fb-budget-right {
+      text-align: right;
+    }
+    .fb-budget-amt {
+      font-size: 0.75rem; font-weight: 700; color: #111;
+    }
+    .fb-budget-sub { font-size: 0.5rem; color: #aaa; }
+    .fb-ring-wrap {
+      display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 4px;
+    }
+    .fb-ring {
+      width: 36px; height: 36px;
+    }
+    .fb-days-left { font-size: 0.5rem; color: #aaa; text-align: right; }
+
+    /* ── BLOG POSTS SECTION ─────────────────────────────────────── */
+    .blog-section {
+      background: #fff;
+      padding: 5rem 1.5rem;
+    }
+    .blog-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    .blog-header {
+      margin-bottom: 2.5rem;
+    }
+    .blog-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      color: var(--navy);
+      line-height: 1.2;
+      margin-bottom: 0.4rem;
+    }
+    .blog-subtitle {
+      font-size: 0.9rem;
+      color: #888;
+      font-weight: 400;
+    }
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.75rem;
+    }
+    .blog-card {
+      background: #fff;
+      border: 1px solid rgba(0,33,71,0.08);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .blog-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 50px rgba(0,33,71,0.10);
+    }
+    .blog-img-wrap {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 16 / 10;
+    }
+    .blog-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.45s ease;
+    }
+    .blog-card:hover .blog-img {
+      transform: scale(1.06);
+    }
+    .blog-tag {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: var(--teal);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 99px;
+    }
+    .blog-body {
+      padding: 1.4rem 1.5rem 1.6rem;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .blog-card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      color: var(--navy);
+      line-height: 1.4;
+      margin-bottom: 0.65rem;
+      font-weight: 600;
+    }
+    .blog-card-desc {
+      font-size: 0.82rem;
+      color: #666;
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 1.25rem;
+    }
+    .blog-read-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--teal);
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1.5px solid var(--teal);
+      padding-bottom: 2px;
+      width: fit-content;
+      transition: gap 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .blog-read-more svg {
+      width: 13px;
+      height: 13px;
+      transition: transform 0.2s;
+    }
+    .blog-read-more:hover {
+      gap: 0.6rem;
+      color: var(--teal-light);
+      border-color: var(--teal-light);
+    }
+    .blog-read-more:hover svg {
+      transform: translateX(3px);
+    }
+    .blog-view-all-wrap {
+      margin-top: 2.5rem;
+      display: flex;
+      justify-content: center;
+    }
+    .blog-view-all {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: transparent;
+      color: var(--navy);
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 0.75rem 2rem;
+      border: 1.5px solid rgba(0,33,71,0.25);
+      border-radius: 8px;
+      transition: background 0.25s, border-color 0.25s, color 0.25s, gap 0.2s;
+      letter-spacing: 0.02em;
+    }
+    .blog-view-all svg {
+      width: 14px;
+      height: 14px;
+      transition: transform 0.2s;
+    }
+    .blog-view-all:hover {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: #fff;
+      gap: 0.75rem;
+    }
+    .blog-view-all:hover svg {
+      transform: translateX(3px);
+    }
+
+    /* Blog responsive */
+    @media (max-width: 1024px) {
+      .blog-grid { grid-template-columns: repeat(2, 1fr); }
+      .blog-card:last-child { display: none; }
+    }
+    @media (max-width: 640px) {
+      .blog-section { padding: 3rem 1.25rem; }
+      .blog-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+      .blog-card:last-child { display: flex; }
+      .blog-card { border-radius: 12px; }
+      .blog-body { padding: 1.1rem 1.2rem 1.3rem; }
+      .blog-card-title { font-size: 0.98rem; }
+    }
+    @media (max-width: 480px) {
+      .blog-title { font-size: 1.6rem; }
+      .blog-view-all { width: 100%; justify-content: center; }
+    }
+
+    /* ── RESPONSIVE ─────────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: repeat(2,1fr); }
+      .chip-1, .chip-2 { display: none; }
+      .fb-text-col { padding: 3rem 2rem; }
+    }
+    @media (max-width: 768px) {
+      .nav-links, .nav-actions { display: none; }
+      .hamburger { display: flex; }
+      .hero-content { grid-template-columns: 1fr; text-align: center; padding-top: 5rem; }
+      .hero-subtitle { margin-left: auto; margin-right: auto; }
+      .hero-actions { justify-content: center; }
+      .hero-trust { justify-content: center; }
+      .hero-phone { margin-top: 1rem; }
+      .phone-frame { width: 200px; }
+      .balance-amount { font-size: 1.2rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      .stats-inner { gap: 1rem; }
+      /* free banking stacks vertically on mobile */
+      .free-banking-inner {
+        grid-template-columns: 1fr;
+      }
+      .fb-phone-col {
+        padding: 3rem 2rem 0;
+        order: 2;
+      }
+      .fb-text-col {
+        order: 1;
+        padding: 3rem 1.5rem 1.5rem;
+        text-align: center;
+        align-items: center;
+      }
+      .fb-desc { margin-left: auto; margin-right: auto; }
+      .fb-perks { align-items: flex-start; width: 100%; max-width: 320px; }
+      .fb-phone-frame { width: 200px; }
+      .fb-bal-amount { font-size: 1.3rem; }
+    }
+    @media (max-width: 480px) {
+      .hero-title { font-size: 2rem; }
+      .phone-frame { width: 180px; }
+      .hero-actions { flex-direction: column; align-items: stretch; }
+      .btn-primary, .btn-secondary { text-align: center; }
+      .fb-phone-frame { width: 175px; }
+      .fb-title { font-size: 1.7rem; }
+    }
+
+    /* scroll hint */
+    .scroll-hint {
+      position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+      color: rgba(255,255,255,0.4); font-size: 0.65rem; letter-spacing: 0.15em;
+      animation: fadeInUp 1s 1.5s ease both;
+    }
+    .scroll-mouse {
+      width: 22px; height: 34px; border: 2px solid rgba(255,255,255,0.25);
+      border-radius: 99px; position: relative;
+    }
+    .scroll-mouse::after {
+      content: ''; position: absolute; top: 5px; left: 50%; transform: translateX(-50%);
+      width: 3px; height: 6px; background: var(--teal); border-radius: 99px;
+      animation: scrollDown 1.6s ease infinite;
+    }
+    @keyframes scrollDown {
+      0%   { opacity:1; transform: translateX(-50%) translateY(0); }
+      100% { opacity:0; transform: translateX(-50%) translateY(12px); }
+    }
+
+    /* ── CUSTOM CURSOR ─────────────────────────────────────────────── */
+    .cursor-dot {
+      position: fixed; top: 0; left: 0; z-index: 99999;
+      width: 8px; height: 8px; background: var(--teal);
+      border-radius: 50%; pointer-events: none;
+      transform: translate(-50%,-50%);
+      transition: transform 0.1s, width 0.2s, height 0.2s, opacity 0.2s;
+    }
+    .cursor-ring {
+      position: fixed; top: 0; left: 0; z-index: 99998;
+      width: 36px; height: 36px;
+      border: 1.5px solid rgba(0,133,124,0.5);
+      border-radius: 50%; pointer-events: none;
+      transform: translate(-50%,-50%);
+      transition: transform 0.12s cubic-bezier(.25,.46,.45,.94), width 0.3s, height 0.3s, opacity 0.3s;
+    }
+    body:has(a:hover) .cursor-ring,
+    body:has(button:hover) .cursor-ring { width: 56px; height: 56px; border-color: var(--gold); opacity: 0.8; }
+    @media (pointer:coarse) { .cursor-dot, .cursor-ring { display: none; } }
+
+    /* ── TICKER TAPE ────────────────────────────────────────────────── */
+    .ticker-wrap {
+      background: var(--teal);
+      overflow: hidden; padding: 0;
+      position: relative; z-index: 99;
+    }
+    .ticker-inner {
+      display: flex; white-space: nowrap;
+      animation: ticker 30s linear infinite;
+    }
+    .ticker-inner:hover { animation-play-state: paused; }
+    .ticker-item {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      padding: 0.55rem 2rem;
+      font-size: 0.72rem; font-weight: 600; color: white;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .ticker-dot { width: 5px; height: 5px; background: rgba(255,255,255,0.5); border-radius: 50%; flex-shrink: 0; }
+    .ticker-highlight { color: var(--gold); }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* ── REVEAL ANIMATIONS ──────────────────────────────────────────── */
+    .reveal {
+      opacity: 0; transform: translateY(32px);
+      transition: opacity 0.7s cubic-bezier(.25,.46,.45,.94), transform 0.7s cubic-bezier(.25,.46,.45,.94);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-left { opacity: 0; transform: translateX(-40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal-left.visible { opacity: 1; transform: translateX(0); }
+    .reveal-right { opacity: 0; transform: translateX(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal-right.visible { opacity: 1; transform: translateX(0); }
+    .reveal-scale { opacity: 0; transform: scale(0.92); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal-scale.visible { opacity: 1; transform: scale(1); }
+    .delay-1 { transition-delay: 0.1s; }
+    .delay-2 { transition-delay: 0.2s; }
+    .delay-3 { transition-delay: 0.3s; }
+    .delay-4 { transition-delay: 0.4s; }
+    .delay-5 { transition-delay: 0.5s; }
+    .delay-6 { transition-delay: 0.6s; }
+
+    /* ── PARTICLE CANVAS ────────────────────────────────────────────── */
+    #particle-canvas {
+      position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    }
+
+    /* ── MORPHING HERO BACKGROUND ───────────────────────────────────── */
+    .hero-bg {
+      animation: heroBgMorph 12s ease-in-out infinite alternate !important;
+    }
+    @keyframes heroBgMorph {
+      0%   { background: linear-gradient(135deg, #001830 0%, #002147 35%, #003a2a 100%); }
+      33%  { background: linear-gradient(160deg, #001020 0%, #002a50 40%, #004535 100%); }
+      66%  { background: linear-gradient(110deg, #001535 0%, #001f45 30%, #003a2a 100%); }
+      100% { background: linear-gradient(145deg, #000d20 0%, #002147 45%, #004030 100%); }
+    }
+
+    /* ── ENHANCED STATS ─────────────────────────────────────────────── */
+    .stats-bar { position: relative; overflow: hidden; }
+    .stats-bar::before {
+      content: '';
+      position: absolute; top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+      animation: statsShimmer 4s ease-in-out infinite;
+    }
+    @keyframes statsShimmer { to { left: 150%; } }
+    .stat-item { cursor: default; }
+    .stat-number {
+      transition: transform 0.3s;
+    }
+    .stat-item:hover .stat-number { transform: scale(1.08); }
+
+    /* ── ENHANCED FEATURE CARDS ─────────────────────────────────────── */
+    .feature-card {
+      transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), box-shadow 0.4s ease !important;
+      cursor: default;
+    }
+    .feature-card:hover {
+      transform: translateY(-8px) rotate(0.5deg) !important;
+      box-shadow: 0 28px 60px rgba(0,33,71,0.15) !important;
+    }
+    .feature-icon {
+      transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), background 0.3s;
+    }
+    .feature-card:hover .feature-icon {
+      transform: scale(1.15) rotate(-5deg);
+      background: linear-gradient(135deg, rgba(0,133,124,0.2), rgba(0,33,71,0.12)) !important;
+    }
+
+    /* ── FLOATING ACTION BUTTON ─────────────────────────────────────── */
+    .fab {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 500;
+      background: linear-gradient(135deg, var(--teal), #006b64);
+      color: white; font-weight: 700; font-size: 0.82rem;
+      padding: 0.9rem 1.5rem; border-radius: 99px;
+      box-shadow: 0 8px 32px rgba(0,133,124,0.5);
+      cursor: pointer; border: none;
+      display: flex; align-items: center; gap: 0.5rem;
+      transform: translateY(100px); opacity: 0;
+      transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), opacity 0.4s, box-shadow 0.3s;
+      letter-spacing: 0.02em; white-space: nowrap;
+    }
+    .fab.visible { transform: translateY(0); opacity: 1; }
+    .fab:hover { box-shadow: 0 12px 40px rgba(0,133,124,0.65); transform: translateY(-3px) scale(1.02); }
+    .fab-pulse {
+      width: 8px; height: 8px; background: var(--gold);
+      border-radius: 50%; flex-shrink: 0;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @media (max-width: 480px) { .fab { bottom: 1rem; right: 1rem; padding: 0.75rem 1.2rem; font-size: 0.78rem; } }
+
+    /* ── ENHANCED BLOG CARDS ────────────────────────────────────────── */
+    .blog-card {
+      transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), box-shadow 0.4s ease !important;
+    }
+    .blog-card:hover {
+      transform: translateY(-8px) !important;
+      box-shadow: 0 32px 64px rgba(0,33,71,0.14) !important;
+    }
+
+    /* ── GRADIENT TEXT SHIMMER ──────────────────────────────────────── */
+    .shimmer-text {
+      background: linear-gradient(90deg, var(--teal-light) 0%, var(--gold) 40%, var(--teal-light) 80%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmerText 4s linear infinite;
+    }
+    @keyframes shimmerText { to { background-position: 200% center; } }
+
+    /* ── ENHANCED NAV ────────────────────────────────────────────────── */
+    nav { transition: background 0.4s, box-shadow 0.4s, transform 0.3s !important; }
+    nav.hide-nav { transform: translateY(-100%); }
+
+    /* ── COUNTER ANIMATION ──────────────────────────────────────────── */
+    .stat-number[data-target] { transition: color 0.3s; }
+
+    /* ── GLOWING BUTTONS ─────────────────────────────────────────────── */
+    .btn-primary {
+      position: relative; overflow: hidden;
+    }
+    .btn-primary::after {
+      content: ''; position: absolute; top: -50%; left: -60%;
+      width: 40%; height: 200%; background: rgba(255,255,255,0.15);
+      transform: skewX(-20deg);
+      transition: left 0.5s;
+    }
+    .btn-primary:hover::after { left: 130%; }
+
+    /* ── TILT CARDS ──────────────────────────────────────────────────── */
+    .feature-card, .blog-card { transform-style: preserve-3d; }
+
+    /* ── SECTION DIVIDERS ─────────────────────────────────────────────── */
+    .wave-divider {
+      display: block; width: 100%; overflow: hidden;
+      line-height: 0; margin-bottom: -2px;
+    }
+    .wave-divider svg { display: block; width: 100%; }
+
+    /* ── HERO WORD REVEAL ─────────────────────────────────────────────── */
+    .hero-title .word {
+      display: inline-block;
+      opacity: 0; transform: translateY(30px) rotateX(-15deg);
+      animation: wordReveal 0.6s cubic-bezier(.34,1.56,.64,1) forwards;
+      transform-origin: bottom;
+    }
+    @keyframes wordReveal {
+      to { opacity: 1; transform: translateY(0) rotateX(0); }
+    }
+
+    /* ── TESTIMONIAL TICKER ──────────────────────────────────────────── */
+    .testimonial-ticker {
+      background: var(--cream);
+      padding: 3rem 0; overflow: hidden;
+      border-top: 1px solid rgba(0,33,71,0.06);
+      border-bottom: 1px solid rgba(0,33,71,0.06);
+    }
+    .testimonial-ticker-inner {
+      display: flex; gap: 1.5rem; width: max-content;
+      animation: testimonialScroll 40s linear infinite;
+    }
+    .testimonial-ticker-inner:hover { animation-play-state: paused; }
+    @keyframes testimonialScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .t-card {
+      background: white; border-radius: 16px; padding: 1.5rem 2rem;
+      min-width: 320px; max-width: 320px;
+      box-shadow: 0 4px 24px rgba(0,33,71,0.07);
+      border: 1px solid rgba(0,33,71,0.06);
+      flex-shrink: 0;
+    }
+    .t-stars { color: var(--gold); font-size: 0.85rem; margin-bottom: 0.75rem; letter-spacing: 0.05em; }
+    .t-text { font-size: 0.85rem; color: #444; line-height: 1.65; margin-bottom: 1rem; font-style: italic; }
+    .t-author { display: flex; align-items: center; gap: 0.65rem; }
+    .t-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: white; flex-shrink: 0;
+    }
+    .t-name { font-size: 0.8rem; font-weight: 700; color: var(--navy); }
+    .t-role { font-size: 0.7rem; color: #888; }
+
+    /* ── ENHANCED CTA SECTION ────────────────────────────────────────── */
+    .cta-section {
+      background: linear-gradient(135deg, var(--navy) 0%, #004060 50%, #003a2a 100%);
+      padding: 6rem 1.5rem; text-align: center; position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(0,133,124,0.2) 0%, transparent 70%);
+      animation: ctaPulse 5s ease-in-out infinite;
+    }
+    @keyframes ctaPulse {
+      0%,100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+    .cta-section-inner { position: relative; z-index: 2; max-width: 640px; margin: 0 auto; }
+    .cta-section-eyebrow {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 1rem;
+    }
+    .cta-section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3rem); color: white; line-height: 1.2; margin-bottom: 1.25rem;
+    }
+    .cta-section-desc { font-size: 1rem; color: rgba(255,255,255,0.65); line-height: 1.7; margin-bottom: 2.5rem; }
+    .cta-btn-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .cta-btn-primary {
+      background: var(--teal); color: white; font-weight: 700;
+      padding: 1rem 2.5rem; border-radius: 8px; border: none; cursor: pointer;
+      font-size: 0.95rem; letter-spacing: 0.03em;
+      box-shadow: 0 8px 30px rgba(0,133,124,0.45);
+      transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+    }
+    .cta-btn-primary:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 14px 40px rgba(0,133,124,0.55); }
+    .cta-btn-ghost {
+      background: transparent; color: white; font-weight: 500;
+      padding: 1rem 2rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3);
+      cursor: pointer; font-size: 0.95rem; transition: all 0.25s;
+    }
+    .cta-btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: white; }
+
+    /* ── CONFETTI CANVAS ────────────────────────────────────────────── */
+    #confetti-canvas {
+      position: fixed; inset: 0; pointer-events: none; z-index: 9997;
+      display: none;
+    }
+
+    /* ── PRELOADER ENHANCEMENTS ──────────────────────────────── */
+    #preloader {
+      background: linear-gradient(160deg, #000d20 0%, #001a35 40%, #001e2e 100%) !important;
+    }
+    .loader-tagline {
+      font-size: 0.62rem; letter-spacing: 0.25em; color: rgba(255,255,255,0.25);
+      text-transform: uppercase; margin-top: -1rem;
+      animation: fadeInDown 1s 0.6s ease forwards; opacity: 0;
+    }
+    .loader-dots {
+      display: flex; gap: 6px; justify-content: center;
+    }
+    .loader-dots span {
+      width: 5px; height: 5px; background: var(--teal); border-radius: 50%;
+      animation: dotBounce 1.2s ease-in-out infinite;
+    }
+    .loader-dots span:nth-child(2) { animation-delay: 0.2s; background: var(--gold); }
+    .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotBounce {
+      0%,100% { transform: translateY(0); opacity: 0.4; }
+      50% { transform: translateY(-8px); opacity: 1; }
+    }
+    .faq-section {
+      background: #fff;
+      padding: 5rem 1.5rem;
+      border-top: 1px solid rgba(0,33,71,0.07);
+    }
+    .faq-inner {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .faq-header {
+      margin-bottom: 2.5rem;
+    }
+    .faq-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      color: var(--navy);
+      line-height: 1.2;
+      margin-bottom: 0.4rem;
+    }
+    .faq-subtitle {
+      font-size: 0.9rem;
+      color: #888;
+    }
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+    }
+    .faq-item {
+      border-bottom: 1px solid rgba(0,33,71,0.1);
+    }
+    .faq-item:first-child {
+      border-top: 1px solid rgba(0,33,71,0.1);
+    }
+    .faq-trigger {
+      width: 100%;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding: 1.2rem 0;
+      text-align: left;
+      transition: background 0.15s;
+    }
+    .faq-trigger:hover .faq-question {
+      color: var(--teal);
+    }
+    .faq-question {
+      font-size: clamp(0.88rem, 1.5vw, 0.96rem);
+      font-weight: 500;
+      color: #111;
+      line-height: 1.45;
+      transition: color 0.2s;
+      flex: 1;
+    }
+    .faq-icon {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--teal);
+      transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    }
+    .faq-icon svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--teal);
+    }
+    .faq-item.open .faq-icon {
+      transform: rotate(90deg);
+    }
+    .faq-answer-wrap {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.35s cubic-bezier(.4,0,.2,1);
+    }
+    .faq-item.open .faq-answer-wrap {
+      grid-template-rows: 1fr;
+    }
+    .faq-answer-inner {
+      overflow: hidden;
+    }
+    .faq-answer {
+      font-size: 0.88rem;
+      color: #555;
+      line-height: 1.75;
+      padding-bottom: 1.25rem;
+      max-width: 700px;
+    }
+
+    /* FAQ responsive */
+    @media (max-width: 640px) {
+      .faq-section { padding: 3rem 1.25rem; }
+      .faq-trigger { padding: 1rem 0; gap: 1rem; }
+      .faq-question { font-size: 0.88rem; }
+    }
+    @media (max-width: 480px) {
+      .faq-title { font-size: 1.6rem; }
+      .faq-answer { font-size: 0.84rem; }
+    }
+
+    /* ── BIG FOOTER ──────────────────────────────────────────────── */
+    .big-footer {
+      background: #fff;
+      border-top: 1px solid rgba(0,33,71,0.08);
+      padding: 4rem 1.5rem 3rem;
+    }
+    .big-footer-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 180px repeat(5, 1fr);
+      gap: 2rem;
+      align-items: start;
+    }
+    .big-footer-logo-col {
+      padding-top: 0.15rem;
+    }
+    .big-footer-logo {
+      display: flex; align-items: center; gap: 0.55rem;
+      text-decoration: none; margin-bottom: 0;
+    }
+    .big-footer-logo-icon { width: 32px; height: 32px; flex-shrink: 0; }
+    .big-footer-brand {
+      font-family: 'Playfair Display', serif;
+      color: var(--navy); font-size: 0.85rem;
+      letter-spacing: 0.03em; line-height: 1.25;
+    }
+    .big-footer-brand span {
+      display: block; font-size: 0.55rem; letter-spacing: 0.16em;
+      color: var(--teal); font-family: 'DM Sans', sans-serif; font-weight: 600;
+    }
+    .big-footer-col-title {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--navy);
+      margin-bottom: 1rem;
+    }
+    .big-footer-links {
+      display: flex; flex-direction: column; gap: 0.55rem; list-style: none;
+    }
+    .big-footer-links a {
+      font-size: 0.82rem; color: #555; text-decoration: none;
+      transition: color 0.2s;
+      line-height: 1.3;
+    }
+    .big-footer-links a:hover { color: var(--teal); }
+
+    /* bottom bar */
+    .big-footer-bar {
+      background: var(--teal);
+      padding: 0 1.5rem;
+    }
+    .big-footer-bar-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1.5rem; flex-wrap: wrap;
+      padding: 1.1rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .big-footer-copy {
+      font-size: 0.78rem; color: rgba(255,255,255,0.85);
+    }
+    .big-footer-socials {
+      display: flex; align-items: center; gap: 0.85rem;
+    }
+    .big-footer-socials a {
+      color: white; opacity: 0.85; transition: opacity 0.2s, transform 0.2s;
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+    }
+    .big-footer-socials a:hover { opacity: 1; transform: translateY(-2px); background: rgba(255,255,255,0.25); }
+    .big-footer-socials svg { width: 15px; height: 15px; }
+
+    .big-footer-legal-row {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap;
+      padding: 0.9rem 0;
+    }
+    .big-footer-legal-row a {
+      font-size: 0.74rem; color: rgba(255,255,255,0.75); text-decoration: none;
+      transition: color 0.2s; padding: 0 0.5rem;
+      border-right: 1px solid rgba(255,255,255,0.25);
+    }
+    .big-footer-legal-row a:last-child { border-right: none; }
+    .big-footer-legal-row a:hover { color: white; }
+
+    /* Big footer responsive */
+    @media (max-width: 1100px) {
+      .big-footer-inner { grid-template-columns: repeat(3, 1fr); }
+      .big-footer-logo-col { grid-column: 1 / -1; display: flex; align-items: center; }
+    }
+    @media (max-width: 768px) {
+      .big-footer { padding: 3rem 1.25rem 2rem; }
+      .big-footer-inner { grid-template-columns: repeat(2, 1fr); gap: 1.75rem; }
+      .big-footer-logo-col { grid-column: 1 / -1; }
+      .big-footer-bar-inner { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
+    @media (max-width: 480px) {
+      .big-footer-inner { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+      .big-footer-logo-col { grid-column: 1 / -1; }
+      .big-footer-col-title { font-size: 0.68rem; }
+      .big-footer-links a { font-size: 0.8rem; }
+      .big-footer-legal-row { gap: 0; }
+      .big-footer-legal-row a { font-size: 0.7rem; padding: 0.2rem 0.4rem; }
+      .big-footer-socials { flex-wrap: wrap; }
+    }
+    @media (max-width: 360px) {
+      .big-footer-inner { grid-template-columns: 1fr; }
+    }
+
+    /* ── TRAVEL CARD SECTION ────────────────────────────────────── */
+    .travel-section {
+      margin-top: 5rem;
+      background: linear-gradient(145deg, #fff5f0 0%, #fce9e9 40%, #fdf0e8 100%);
+      overflow: hidden;
+      border-radius: 28px 28px 0 0;
+      position: relative;
+    }
+    .travel-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c97b4b' fill-opacity='0.03'%3E%3Cpath d='M40 40c0-11.046-8.954-20-20-20S0 28.954 0 40s8.954 20 20 20 20-8.954 20-20zm20-20c0-11.046-8.954-20-20-20S20 8.954 20 20s8.954 20 20 20 20-8.954 20-20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+      pointer-events: none;
+    }
+    .travel-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      min-height: 600px;
+      position: relative; z-index: 1;
+    }
+    .travel-text-col {
+      padding: 5rem 3rem 5rem 4.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .travel-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--teal);
+      margin-bottom: 1.2rem;
+    }
+    .travel-eyebrow::before {
+      content: ''; width: 24px; height: 2px;
+      background: var(--teal); border-radius: 99px;
+    }
+    .travel-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 4vw, 3.2rem);
+      color: #1a1a1a;
+      line-height: 1.12;
+      margin-bottom: 1.3rem;
+      font-weight: 700;
+    }
+    .travel-title em { color: var(--teal); font-style: normal; }
+    .travel-desc {
+      font-size: clamp(0.85rem, 1.3vw, 0.97rem);
+      color: #555;
+      line-height: 1.78;
+      max-width: 380px;
+      margin-bottom: 1.5rem;
+    }
+    .travel-desc sup { font-size: 0.6em; vertical-align: super; }
+    .travel-perks {
+      display: flex; flex-direction: column; gap: 0.6rem;
+      margin-bottom: 2rem;
+    }
+    .travel-perk {
+      display: flex; align-items: center; gap: 0.65rem;
+      font-size: 0.84rem; color: #333; font-weight: 500;
+    }
+    .travel-perk-icon {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(0,133,124,0.12);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .travel-perk-icon svg { width: 11px; height: 11px; stroke: var(--teal); stroke-width: 2.5; }
+    .travel-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--navy);
+      color: white;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 0.8rem 1.6rem;
+      border-radius: 8px;
+      width: fit-content;
+      transition: background 0.25s, transform 0.2s, box-shadow 0.25s;
+      box-shadow: 0 6px 20px rgba(0,33,71,0.22);
+    }
+    .travel-cta:hover {
+      background: var(--teal);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(0,133,124,0.35);
+    }
+    .travel-cta svg { width: 14px; height: 14px; transition: transform 0.2s; }
+    .travel-cta:hover svg { transform: translateX(3px); }
+
+    /* right media col */
+    .travel-media-col {
+      position: relative;
+      height: 100%;
+      min-height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    /* ATM card visual */
+    .travel-card-stage {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .travel-atm-img {
+      width: 100%;
+      max-width: 380px;
+      border-radius: 20px;
+      display: block;
+      position: relative; z-index: 2;
+      filter: drop-shadow(0 30px 60px rgba(0,33,71,0.22));
+      animation: cardFloat 6s ease-in-out infinite;
+    }
+    @keyframes cardFloat {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(-16px) rotate(-2deg); }
+    }
+    /* decorative blob behind card */
+    .travel-blob {
+      position: absolute;
+      width: 340px; height: 340px;
+      background: radial-gradient(circle, rgba(0,133,124,0.15) 0%, rgba(201,168,76,0.08) 60%, transparent 100%);
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      animation: blobPulse 5s ease-in-out infinite;
+    }
+    @keyframes blobPulse {
+      0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 0.8; }
+      50% { transform: translate(-50%,-50%) scale(1.1); opacity: 1; }
+    }
+    /* floating feature chips */
+    .travel-chip {
+      position: absolute;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(8px);
+      border-radius: 14px;
+      padding: 12px 16px;
+      box-shadow: 0 10px 36px rgba(0,0,0,0.13);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 5;
+      animation: travelChipFloat 4s ease-in-out infinite;
+      border: 1px solid rgba(255,255,255,0.8);
+      min-width: 140px;
+    }
+    .travel-chip-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .travel-chip-icon svg { width: 20px; height: 20px; }
+    .travel-chip-text { display: flex; flex-direction: column; gap: 1px; }
+    .travel-chip-label { font-size: 0.72rem; font-weight: 700; color: #111; line-height: 1.2; }
+    .travel-chip-sub { font-size: 0.6rem; color: #888; }
+    .travel-chip-1 { top: 8%; right: 2%; animation-delay: 0s; }
+    .travel-chip-2 { bottom: 14%; left: 2%; animation-delay: -2.2s; }
+    .travel-chip-3 { top: 45%; right: -2%; animation-delay: -1s; }
+    @keyframes travelChipFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* responsive */
+    @media (max-width: 1024px) {
+      .travel-text-col { padding: 4rem 2.5rem 4rem 3rem; }
+      .travel-chip-1 { right: 0; }
+      .travel-chip-3 { display: none; }
+    }
+    @media (max-width: 900px) {
+      .travel-section { margin-top: 3rem; border-radius: 20px 20px 0 0; }
+      .travel-inner { grid-template-columns: 1fr; min-height: auto; }
+      .travel-text-col { padding: 3rem 2rem 1.5rem; text-align: center; align-items: center; order: 1; }
+      .travel-desc { margin-left: auto; margin-right: auto; }
+      .travel-perks { align-items: flex-start; width: 100%; max-width: 340px; }
+      .travel-media-col { min-height: 420px; order: 2; padding: 1.5rem 2rem 3rem; }
+      .travel-card-stage { max-width: 360px; margin: 0 auto; }
+      .travel-atm-img { max-width: 320px; }
+      .travel-chip-1 { top: 5%; right: 5%; }
+      .travel-chip-2 { bottom: 8%; left: 5%; }
+    }
+    @media (max-width: 600px) {
+      .travel-section { margin-top: 2.5rem; border-radius: 16px 16px 0 0; }
+      .travel-text-col { padding: 2.5rem 1.25rem 1.25rem; }
+      .travel-title { font-size: 2rem; }
+      .travel-media-col { min-height: 340px; padding: 1rem 1.25rem 2.5rem; }
+      .travel-atm-img { max-width: 260px; }
+      .travel-blob { width: 240px; height: 240px; }
+      .travel-chip { padding: 9px 12px; min-width: 120px; }
+      .travel-chip-icon { width: 32px; height: 32px; }
+      .travel-chip-icon svg { width: 16px; height: 16px; }
+      .travel-chip-label { font-size: 0.66rem; }
+      .travel-chip-sub { font-size: 0.55rem; }
+      .travel-cta { width: 100%; justify-content: center; }
+    }
+    @media (max-width: 420px) {
+      .travel-media-col { min-height: 290px; }
+      .travel-atm-img { max-width: 220px; }
+      .travel-chip-2 { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ CUSTOM CURSOR ═══════════════ -->
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ═══════════════ CONFETTI CANVAS ═══════════════ -->
+<canvas id="confetti-canvas"></canvas>
+
+<!-- ═══════════════ PRELOADER ═══════════════ -->
+<div id="preloader">
+  <div class="loader-logo">
+    <!-- Anchor SVG -->
+    <svg class="loader-anchor" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="30" cy="12" r="7" stroke="#00857C" stroke-width="2.5"/>
+      <line x1="30" y1="19" x2="30" y2="52" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M12 30 Q30 52 48 30" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <line x1="16" y1="52" x2="44" y2="52" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <div class="loader-brand">Navy Federal<span>Credit Union</span></div>
+    <div class="loader-tagline">Serving Those Who Serve America</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:0.75rem">
+    <div class="loader-dots"><span></span><span></span><span></span></div>
+    <div class="progress-wrap"><div class="progress-bar"></div></div>
+    <div class="progress-label">SECURING YOUR SESSION…</div>
+  </div>
+</div>
+
+<!-- ═══════════════ SITE ═══════════════ -->
+<div id="site">
+
+  <!-- TICKER TAPE -->
+  <div class="ticker-wrap">
+    <div class="ticker-inner" id="tickerInner">
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">13M+</span> Members Served</div>
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">$168B</span> in Assets</div>
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">Zero</span> Monthly Fees</div>
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">4.9★</span> App Store Rating</div>
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">13,000+</span> Free ATMs Worldwide</div>
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">NCUA Insured</span> up to $250K</div>
+      <div class="ticker-item"><span class="ticker-dot"></span> Serving Those Who Serve <span class="ticker-highlight">America</span></div>
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">350+</span> Branches Worldwide</div>
+      <!-- duplicate for seamless loop -->
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">13M+</span> Members Served</div>
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">$168B</span> in Assets</div>
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">Zero</span> Monthly Fees</div>
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">4.9★</span> App Store Rating</div>
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">13,000+</span> Free ATMs Worldwide</div>
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">NCUA Insured</span> up to $250K</div>
+      <div class="ticker-item"><span class="ticker-dot"></span> Serving Those Who Serve <span class="ticker-highlight">America</span></div>
+      <div class="ticker-item"><span class="ticker-dot"></span> <span class="ticker-highlight">350+</span> Branches Worldwide</div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a class="nav-logo" href="#">
+        <svg class="nav-logo-icon" viewBox="0 0 36 36" fill="none">
+          <rect width="36" height="36" rx="8" fill="rgba(255,255,255,0.08)"/>
+          <circle cx="18" cy="10" r="4" stroke="#00857C" stroke-width="2"/>
+          <line x1="18" y1="14" x2="18" y2="30" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M8 21 Q18 30 28 21" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <line x1="10" y1="30" x2="26" y2="30" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="nav-brand">Navy Federal<span>Credit Union</span></div>
+      </a>
+      <div class="nav-links">
+        <a href="#">Plans</a><a href="#">Bank</a><a href="#">Save</a>
+        <a href="#">Invest</a><a href="#">Credit</a><a href="#">Loans</a>
+      </div>
+      <div class="nav-actions">
+  <a href="login.html" class="btn-login">Log In</a>
+  <a href="register.html" class="btn-cta">Open Free Account</a>
+</div>
+      </div>
+      <div class="hamburger" id="hamburger">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#">Plans</a><a href="#">Bank</a><a href="#">Save</a>
+    <a href="#">Invest</a>
+<a href="#">Credit</a>
+<a href="#">Loans</a>
+
+<div class="mob-actions">
+  <a href="login.html" class="btn-login">Log In</a>
+  <a href="register.html" class="btn-cta">Open Free Account</a>
+</div>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg">
+      <canvas id="particle-canvas"></canvas>
+      <div class="bokeh bokeh-1"></div>
+      <div class="bokeh bokeh-2"></div>
+      <div class="bokeh bokeh-3"></div>
+    </div>
+
+    <div class="hero-content">
+      <!-- TEXT -->
+      <div class="hero-text">
+        <div class="hero-badge">Serving Those Who Serve America</div>
+        <h1 class="hero-title">
+          The first bank<br>you'll truly <em class="shimmer-text">love</em>
+        </h1>
+        <p class="hero-subtitle">
+          Bank, save, and invest in one beautifully simple app — trusted by millions of military members, veterans, and their families.
+        </p>
+        <div class="hero-actions">
+          <button class="btn-primary">Open Free Account</button>
+          <button class="btn-secondary">Explore Plans</button>
+        </div>
+        <div class="hero-trust">
+          <div class="trust-item">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l-3-3 1.4-1.4L9 9.2l5.6-5.6L16 5z"/><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z" fill-opacity=".2"/></svg>
+            NCUA Insured
+          </div>
+          <div class="trust-divider"></div>
+          <div class="trust-item">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path d="M10 1l2.5 5 5.5.8-4 3.9.9 5.5L10 13.5l-4.9 2.7.9-5.5L2 6.8l5.5-.8z"/></svg>
+            4.9 App Store
+          </div>
+          <div class="trust-divider"></div>
+          <div class="trust-item">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2C6 2 3 5 3 9c0 5 7 11 7 11s7-6 7-11c0-4-3-7-7-7zm0 9a2 2 0 110-4 2 2 0 010 4z"/></svg>
+            13,000+ ATMs
+          </div>
+        </div>
+      </div>
+
+      <!-- PHONE -->
+      <div class="hero-phone">
+        <div class="phone-wrap">
+          <!-- floating chips -->
+          <div class="chip chip-1">
+            <div class="chip-icon" style="background:#e8f8f7">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#00857C" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            </div>
+            <div class="chip-text"><span class="chip-label">Savings</span><span class="chip-value">+$1,240</span></div>
+          </div>
+          <div class="chip chip-2">
+            <div class="chip-icon" style="background:#fff8ea">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#C9A84C" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="chip-text"><span class="chip-label">Protected</span><span class="chip-value">$250K</span></div>
+          </div>
+
+          <!-- PHONE -->
+          <div class="phone-frame">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <!-- status bar -->
+              <div class="phone-status">
+                <span>9:41</span>
+                <div style="display:flex;gap:4px;align-items:center">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#333"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01" stroke="#555" stroke-width="1.5" fill="none"/></svg>
+                  <svg width="14" height="10" viewBox="0 0 24 16" fill="#333"><rect x="0" y="3" width="18" height="10" rx="2" stroke="#333" stroke-width="1.5" fill="none"/><rect x="19" y="6" width="2" height="4" rx="1" fill="#333"/><rect x="1.5" y="4.5" width="12" height="7" rx="1" fill="#333"/></svg>
+                </div>
+              </div>
+
+              <!-- app header -->
+              <div class="phone-app-header">
+                <div>
+                  <div class="app-header-title">Good Morning ✦</div>
+                  <div style="font-size:0.75rem;font-weight:700;color:#111">James R.</div>
+                </div>
+                <div class="app-avatar"></div>
+              </div>
+
+              <!-- balance -->
+              <div class="balance-card">
+                <div class="balance-label">MAIN ACCOUNT</div>
+                <div class="balance-amount">$8,873.26</div>
+                <div class="balance-sub">Current balance</div>
+              </div>
+
+              <!-- quick actions -->
+              <div class="quick-actions">
+                <div class="qa-item">
+                  <div class="qa-icon">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#00857C" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                  </div>
+                  <div class="qa-label">Add</div>
+                </div>
+                <div class="qa-item">
+                  <div class="qa-icon">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#C9A84C" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  </div>
+                  <div class="qa-label">Send</div>
+                </div>
+                <div class="qa-item">
+                  <div class="qa-icon">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#002147" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#002147" stroke-width="2"/><path d="M2 10h20" stroke="#002147" stroke-width="2"/></svg>
+                  </div>
+                  <div class="qa-label">Cards</div>
+                </div>
+                <div class="qa-item">
+                  <div class="qa-icon">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#666" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 19.07l1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41"/></svg>
+                  </div>
+                  <div class="qa-label">More</div>
+                </div>
+              </div>
+
+              <!-- transactions -->
+              <div style="font-size:0.62rem;font-weight:700;color:#333;margin-bottom:6px;padding:0 2px">Recent</div>
+              <div class="transactions">
+                <div class="tx-row">
+                  <div class="tx-left">
+                    <div class="tx-icon" style="background:#fef3f2">🛒</div>
+                    <div class="tx-info"><div class="tx-name">Supermarket</div><div class="tx-date">Today</div></div>
+                  </div>
+                  <div class="tx-amount tx-neg">−$62.40</div>
+                </div>
+                <div class="tx-row">
+                  <div class="tx-left">
+                    <div class="tx-icon" style="background:#f0fdf4">🚕</div>
+                    <div class="tx-info"><div class="tx-name">Taxi</div><div class="tx-date">Yesterday</div></div>
+                  </div>
+                  <div class="tx-amount tx-neg">−$50.00</div>
+                </div>
+                <div class="tx-row">
+                  <div class="tx-left">
+                    <div class="tx-icon" style="background:#eff6ff">✈️</div>
+                    <div class="tx-info"><div class="tx-name">Airport</div><div class="tx-date">Mon</div></div>
+                  </div>
+                  <div class="tx-amount tx-neg">−$25.00</div>
+                </div>
+              </div>
+
+              <!-- budget -->
+              <div class="budget-card">
+                <div class="budget-title">Monthly Budget</div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                  <span style="font-size:0.55rem;color:#aaa">Spent $1,447</span>
+                  <span style="font-size:0.55rem;color:var(--teal);font-weight:700">$553 left</span>
+                </div>
+                <div class="budget-bar-wrap"><div class="budget-bar"></div></div>
+                <div class="mini-chart">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:1px;flex:1">
+                    <div class="bar bar-income" style="height:22px"></div>
+                    <div class="bar bar-expense" style="height:14px"></div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:1px;flex:1">
+                    <div class="bar bar-income" style="height:28px"></div>
+                    <div class="bar bar-expense" style="height:18px"></div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:1px;flex:1">
+                    <div class="bar bar-income" style="height:20px"></div>
+                    <div class="bar bar-expense" style="height:24px"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phone-glow"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- scroll hint -->
+    <div class="scroll-hint">
+      <div class="scroll-mouse"></div>
+      <span>SCROLL</span>
+    </div>
+  </section>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="stats-inner">
+      <div class="stat-item reveal delay-1">
+        <div class="stat-number" data-target="13" data-suffix="M+">0<span>M+</span></div>
+        <div class="stat-label">Members Served</div>
+      </div>
+      <div class="stat-item reveal delay-2">
+        <div class="stat-number" data-target="168" data-prefix="$" data-suffix="B">$<span>0B</span></div>
+        <div class="stat-label">Assets Under Management</div>
+      </div>
+      <div class="stat-item reveal delay-3">
+        <div class="stat-number" data-target="13" data-suffix="K+">0<span>K+</span></div>
+        <div class="stat-label">Free ATMs Worldwide</div>
+      </div>
+      <div class="stat-item reveal delay-4">
+        <div class="stat-number" data-target="4.9" data-suffix="★" data-decimal="1">0<span>★</span></div>
+        <div class="stat-label">App Store Rating</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Why Navy Federal</div>
+      <h2 class="section-title">Banking built for those<br>who serve &amp; their families</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal delay-1">
+        <div class="feature-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <div class="feature-title">Zero-Fee Banking</div>
+        <div class="feature-desc">No monthly fees, no minimum balance, no hidden charges. Keep every dollar you earn working for you.</div>
+      </div>
+      <div class="feature-card reveal delay-2">
+        <div class="feature-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        </div>
+        <div class="feature-title">Smart Investments</div>
+        <div class="feature-desc">Grow your wealth with commission-free stocks, ETFs, and IRAs — all inside the same app you bank with.</div>
+      </div>
+      <div class="feature-card reveal delay-3">
+        <div class="feature-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <div class="feature-title">Military-Grade Security</div>
+        <div class="feature-desc">NCUA-insured up to $250,000, biometric login, and real-time fraud alerts keep your funds protected 24/7.</div>
+      </div>
+      <div class="feature-card reveal delay-4">
+        <div class="feature-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" d="M2 10h20"/></svg>
+        </div>
+        <div class="feature-title">Low-Rate Credit Cards</div>
+        <div class="feature-desc">Enjoy competitive APRs, generous cashback on everyday purchases, and no foreign transaction fees overseas.</div>
+      </div>
+      <div class="feature-card reveal delay-5">
+        <div class="feature-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        </div>
+        <div class="feature-title">VA &amp; Military Loans</div>
+        <div class="feature-desc">Exclusive rates on VA home loans, auto loans, and personal loans, crafted specifically for military life.</div>
+      </div>
+      <div class="feature-card reveal delay-6">
+        <div class="feature-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="feature-title">24/7 Member Support</div>
+        <div class="feature-desc">Reach a real person any time — by phone, chat, or in any of our 350+ branches worldwide.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FREE BANKING SECTION (screenshot 2) -->
+  <section class="free-banking">
+    <div class="free-banking-inner">
+
+      <!-- LEFT: Phone -->
+      <div class="fb-phone-col">
+        <div class="fb-phone-wrap">
+          <div class="fb-phone-frame">
+            <div class="fb-phone-notch"></div>
+            <div class="fb-screen">
+
+              <!-- status -->
+              <div class="fb-status">
+                <span>14:26</span>
+                <div style="display:flex;gap:4px;align-items:center">
+                  <svg width="11" height="8" viewBox="0 0 24 16" fill="#333"><rect x="0" y="2" width="4" height="12" rx="1" fill="#333"/><rect x="6" y="5" width="4" height="9" rx="1" fill="#333"/><rect x="12" y="8" width="4" height="6" rx="1" fill="#333"/><rect x="18" y="1" width="4" height="13" rx="1" fill="#333"/></svg>
+                  <svg width="11" height="8" viewBox="0 0 24 16" fill="#333"><path d="M12 3C7.5 3 3.5 5.5 1 9.2l2 1.5C5 7.5 8.3 5.5 12 5.5s7 2 9 5.2l2-1.5C20.5 5.5 16.5 3 12 3zm0 5c-2.5 0-4.7 1.1-6.2 2.9l2 1.5A5.5 5.5 0 0112 10.5c1.7 0 3.2.8 4.2 2l2-1.5C16.7 9.1 14.5 8 12 8zm0 5a2 2 0 100 4 2 2 0 000-4z" fill="#333"/></svg>
+                  <svg width="18" height="9" viewBox="0 0 28 13" fill="none"><rect x="0.5" y="0.5" width="23" height="12" rx="2.5" stroke="#333"/><rect x="2" y="2" width="16" height="9" rx="1.5" fill="#333"/><path d="M25 4.5h1.5a1 1 0 010 4H25" stroke="#333"/></svg>
+                </div>
+              </div>
+
+              <!-- Home label -->
+              <div class="fb-home-label">Home</div>
+
+              <!-- account row -->
+              <div class="fb-account-row">
+                <div class="fb-account-icon">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20" stroke="white" stroke-width="2"/></svg>
+                </div>
+                <div class="fb-account-info">
+                  <div class="fb-account-name">Main Account &rsaquo;</div>
+                  <div class="fb-account-sub">Checking</div>
+                </div>
+                <div class="fb-add-btn">
+                  <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="#999" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                </div>
+              </div>
+
+              <!-- balance -->
+              <div class="fb-balance-row">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                  <div>
+                    <div class="fb-bal-label">Current balance</div>
+                    <div class="fb-bal-amount">$8,873.26</div>
+                  </div>
+                  <div class="fb-cards-chip">
+                    <svg width="9" height="7" viewBox="0 0 18 13" fill="none"><rect x="0" y="0" width="18" height="13" rx="2" fill="#ddd"/><rect x="0" y="3" width="18" height="4" fill="#aaa"/></svg>
+                    Cards
+                  </div>
+                </div>
+              </div>
+
+              <div class="fb-divider"></div>
+
+              <!-- transactions -->
+              <div class="fb-tx">
+                <div class="fb-tx-row">
+                  <div class="fb-tx-left">
+                    <div class="fb-tx-icon" style="background:#fef3f2">🛒</div>
+                    <div class="fb-tx-name">Supermarket</div>
+                  </div>
+                  <div class="fb-tx-amt" style="color:#e74c3c">−$50.00</div>
+                </div>
+                <div class="fb-tx-row">
+                  <div class="fb-tx-left">
+                    <div class="fb-tx-icon" style="background:#f0fdf4">🚕</div>
+                    <div class="fb-tx-name">Taxi</div>
+                  </div>
+                  <div class="fb-tx-amt" style="color:#e74c3c">−$25.00</div>
+                </div>
+                <div class="fb-tx-row">
+                  <div class="fb-tx-left">
+                    <div class="fb-tx-icon" style="background:#eff6ff">✈️</div>
+                    <div class="fb-tx-name">Airport</div>
+                  </div>
+                  <div class="fb-tx-amt" style="color:#e74c3c">−$18.00</div>
+                </div>
+              </div>
+
+              <!-- bottom budget + chart -->
+              <div class="fb-bottom">
+                <div style="display:flex;justify-content:space-between;align-items:flex-end">
+                  <div>
+                    <div class="fb-chart-legend">
+                      <div style="display:flex;align-items:center;gap:3px"><div class="fb-legend-dot" style="background:var(--teal)"></div>Income</div>
+                      <div style="display:flex;align-items:center;gap:3px"><div class="fb-legend-dot" style="background:#f0c070"></div>Expenses</div>
+                    </div>
+                    <div class="fb-bars">
+                      <div class="fb-bar-group">
+                        <div class="fb-bar fb-bar-i" style="height:20px"></div>
+                        <div class="fb-bar fb-bar-e" style="height:12px"></div>
+                      </div>
+                      <div style="width:4px"></div>
+                      <div class="fb-bar-group">
+                        <div class="fb-bar fb-bar-i" style="height:26px"></div>
+                        <div class="fb-bar fb-bar-e" style="height:16px"></div>
+                      </div>
+                      <div style="width:4px"></div>
+                      <div class="fb-bar-group">
+                        <div class="fb-bar fb-bar-i" style="height:18px"></div>
+                        <div class="fb-bar fb-bar-e" style="height:22px"></div>
+                      </div>
+                    </div>
+                    <div class="fb-bar-labels" style="margin-top:2px">
+                      <span class="fb-bar-label">Mar</span>
+                      <span class="fb-bar-label">Apr</span>
+                      <span class="fb-bar-label">May</span>
+                    </div>
+                  </div>
+                  <div class="fb-budget-right">
+                    <div class="fb-budget-amt">$553.09</div>
+                    <div class="fb-budget-sub">Left of budget</div>
+                    <div class="fb-ring-wrap">
+                      <div>
+                        <svg class="fb-ring" viewBox="0 0 36 36">
+                          <circle cx="18" cy="18" r="14" fill="none" stroke="#eee" stroke-width="3.5"/>
+                          <circle cx="18" cy="18" r="14" fill="none" stroke="var(--teal)" stroke-width="3.5"
+                            stroke-dasharray="62 88" stroke-dashoffset="22" stroke-linecap="round"/>
+                          <text x="18" y="21" text-anchor="middle" font-size="7" fill="#333" font-weight="700">65%</text>
+                        </svg>
+                        <div class="fb-days-left">5 days to go</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /fb-screen -->
+          </div><!-- /fb-phone-frame -->
+        </div><!-- /fb-phone-wrap -->
+      </div><!-- /fb-phone-col -->
+
+      <!-- RIGHT: Text -->
+      <div class="fb-text-col reveal-right">
+        <h2 class="fb-title">Bank for free —<br>with no hidden fees</h2>
+        <p class="fb-desc">
+          Open your account in minutes and enjoy 100% mobile banking.
+          Get a free virtual card, zero ATM withdrawal fees, and no surprise charges — ever.
+        </p>
+        <div class="fb-perks">
+          <div class="fb-perk"><div class="fb-perk-dot"></div>No monthly maintenance fees</div>
+          <div class="fb-perk"><div class="fb-perk-dot"></div>Free virtual &amp; physical debit card</div>
+          <div class="fb-perk"><div class="fb-perk-dot"></div>Monthly ATM fee rebates</div>
+        </div>
+        <a href="register.html" class="fb-cta">
+          Open a Navy Federal Standard account
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SAVE FLEXIBLY SECTION (screenshot 3) -->
+  <section class="save-section">
+    <div class="save-inner">
+
+      <!-- LEFT: Text -->
+      <div class="save-text-col reveal-left">
+        <h2 class="save-title">Save flexibly.<br>Earn 1.30% APY.<sup>1</sup></h2>
+        <p class="save-desc">
+          Grow your money without locking it away. Earn our best interest rate on your savings with Navy Federal Metal.
+        </p>
+        <a href="#" class="save-cta">
+          Discover Instant Savings
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- RIGHT: Photo + floating phone -->
+      <div class="save-media-col">
+        <div class="save-photo-wrap">
+          <!-- Real lifestyle photo: person using phone outdoors -->
+          <img
+            class="save-real-img"
+            src="https://images.unsplash.com/photo-1579621970795-87facc2f976d?w=900&q=80&auto=format&fit=crop"
+            alt="Person checking savings on mobile phone outdoors"
+          />
+          <!-- Floating phone mockup over the photo -->
+          <div class="save-floating-phone">
+            <div class="sfp-frame">
+              <div class="sfp-notch"></div>
+              <div class="sfp-screen">
+                <div class="sfp-status">
+                  <span style="font-size:0.5rem;font-weight:700;color:#111">9:41</span>
+                  <div style="display:flex;gap:3px">
+                    <svg width="9" height="7" viewBox="0 0 24 16"><rect x="0" y="2" width="4" height="12" rx="1" fill="#333"/><rect x="6" y="5" width="4" height="9" rx="1" fill="#333"/><rect x="12" y="8" width="4" height="6" rx="1" fill="#333"/><rect x="18" y="1" width="4" height="13" rx="1" fill="#333"/></svg>
+                    <svg width="14" height="7" viewBox="0 0 28 13" fill="none"><rect x="0.5" y="0.5" width="23" height="12" rx="2.5" stroke="#333"/><rect x="2" y="2" width="14" height="9" rx="1" fill="#333"/></svg>
+                  </div>
+                </div>
+                <div class="sfp-label">Savings</div>
+                <div class="sfp-amount">$24,150<span style="font-size:0.7rem">.00</span></div>
+                <div class="sfp-apy-badge">1.30% APY</div>
+                <svg class="sfp-chart" viewBox="0 0 120 45" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#00857C" stop-opacity="0.3"/>
+                      <stop offset="100%" stop-color="#00857C" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0 38 C15 35 25 30 35 28 C45 26 55 32 65 22 C75 14 85 18 95 12 C105 8 115 6 120 4" stroke="#00857C" stroke-width="2" fill="none" stroke-linecap="round"/>
+                  <path d="M0 38 C15 35 25 30 35 28 C45 26 55 32 65 22 C75 14 85 18 95 12 C105 8 115 6 120 4 L120 45 L0 45 Z" fill="url(#chartGrad)"/>
+                </svg>
+                <div class="sfp-months">
+                  <span>Jan</span><span>Mar</span><span>May</span><span>Jul</span>
+                </div>
+                <div class="sfp-earned">
+                  <div class="sfp-earned-icon">✦</div>
+                  <div>
+                    <div style="font-size:0.5rem;color:#888">Interest earned</div>
+                    <div style="font-size:0.6rem;font-weight:700;color:#111">+$312.45 this year</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════ TRAVEL CARD SECTION ═══════════════ -->
+  <section class="travel-section">
+    <div class="travel-inner">
+
+      <!-- LEFT: Text -->
+      <div class="travel-text-col reveal-left">
+        <div class="travel-eyebrow">Travel Benefits</div>
+        <h2 class="travel-title">The card made for<br><em>travel</em></h2>
+        <p class="travel-desc">
+          Get cashback<sup>4</sup> on travel, the best exchange rates, and airport lounge access. Travel stress-free with free ATM withdrawals abroad and full insurance — included with Navy Federal Go and Metal.
+        </p>
+        <div class="travel-perks">
+          <div class="travel-perk">
+            <div class="travel-perk-icon"><svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+            No foreign transaction fees
+          </div>
+          <div class="travel-perk">
+            <div class="travel-perk-icon"><svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+            Free ATM withdrawals worldwide
+          </div>
+          <div class="travel-perk">
+            <div class="travel-perk-icon"><svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+            Airport lounge access included
+          </div>
+        </div>
+        <a href="register.html" class="travel-cta">
+          Open a Navy Federal Go account
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- RIGHT: ATM Card + floating chips -->
+      <div class="travel-media-col">
+        <div class="travel-card-stage">
+          <div class="travel-blob"></div>
+
+          <!-- ATM Card Image -->
+          <img
+            class="travel-atm-img"
+            src="https://images.unsplash.com/photo-1613243555988-441166d4d6fd?w=800&q=85&auto=format&fit=crop"
+            alt="Navy Federal credit card for travel"
+          />
+
+          <!-- Chip 1: Travel Coverage -->
+          <div class="travel-chip travel-chip-1">
+            <div class="travel-chip-icon" style="background:rgba(0,133,124,0.1)">
+              <svg fill="none" viewBox="0 0 24 24" stroke="#00857C" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+            <div class="travel-chip-text">
+              <span class="travel-chip-label">Travel Coverage</span>
+              <span class="travel-chip-sub">Fully insured abroad</span>
+            </div>
+          </div>
+
+          <!-- Chip 2: Airport Lounges -->
+          <div class="travel-chip travel-chip-2">
+            <div class="travel-chip-icon" style="background:rgba(201,168,76,0.12)">
+              <svg fill="none" viewBox="0 0 24 24" stroke="#C9A84C" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              </svg>
+            </div>
+            <div class="travel-chip-text">
+              <span class="travel-chip-label">Airport Lounges</span>
+              <span class="travel-chip-sub">1,300+ lounges worldwide</span>
+            </div>
+          </div>
+
+          <!-- Chip 3: Zero Fees -->
+          <div class="travel-chip travel-chip-3">
+            <div class="travel-chip-icon" style="background:rgba(0,33,71,0.08)">
+              <svg fill="none" viewBox="0 0 24 24" stroke="#002147" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div class="travel-chip-text">
+              <span class="travel-chip-label">Zero FX Fees</span>
+              <span class="travel-chip-sub">Best exchange rates</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ RELATED BLOG POSTS ═══════════════ -->
+  <section class="blog-section">
+    <div class="blog-inner">
+      <div class="blog-header reveal">
+        <div class="section-eyebrow">Resources</div>
+        <h2 class="blog-title">Related blog posts</h2>
+        <p class="blog-subtitle">These might also interest you</p>
+      </div>
+
+      <div class="blog-grid">
+
+        <!-- Card 1 -->
+        <article class="blog-card reveal delay-1">
+          <div class="blog-img-wrap">
+            <img
+              src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=700&q=80&auto=format&fit=crop"
+              alt="Save money fast tips"
+              class="blog-img"
+            />
+            <div class="blog-tag">Savings</div>
+          </div>
+          <div class="blog-body">
+            <h3 class="blog-card-title">How to save money fast: 17 tips to grow your savings</h3>
+            <p class="blog-card-desc">Whether your financial goals are big or small, these life hacks will help you save money faster and build lasting habits.</p>
+            <a href="#" class="blog-read-more">
+              Read more
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="blog-card reveal delay-2">
+          <div class="blog-img-wrap">
+            <img
+              src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=700&q=80&auto=format&fit=crop"
+              alt="Transfer money between banks"
+              class="blog-img"
+            />
+            <div class="blog-tag">Banking</div>
+          </div>
+          <div class="blog-body">
+            <h3 class="blog-card-title">How to transfer money from one bank to another</h3>
+            <p class="blog-card-desc">SEPA, intra-bank, and inter-bank transfers. Not sure what all the banking jargon actually means? Discover how to best move your money explained in simple terms.</p>
+            <a href="#" class="blog-read-more">
+              Read more
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="blog-card reveal delay-3">
+          <div class="blog-img-wrap">
+            <img
+              src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=700&q=80&auto=format&fit=crop"
+              alt="What is trading"
+              class="blog-img"
+            />
+            <div class="blog-tag">Investing</div>
+          </div>
+          <div class="blog-body">
+            <h3 class="blog-card-title">A beginner's guide: What is trading and how does it work?</h3>
+            <p class="blog-card-desc">Trading is more than a buzzword or an '80s throwback. This article covers what financial trading is and how it works, step by step.</p>
+            <a href="#" class="blog-read-more">
+              Read more
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="blog-view-all-wrap">
+        <a href="#" class="blog-view-all">
+          View all articles
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ FAQ SECTION ═══════════════ -->
+  <section class="faq-section">
+    <div class="faq-inner">
+      <div class="faq-header reveal">
+        <div class="section-eyebrow">Help</div>
+        <h2 class="faq-title">Frequently asked questions</h2>
+        <p class="faq-subtitle">Everything you need to know about Navy Federal</p>
+      </div>
+
+      <div class="faq-list">
+
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">Is Navy Federal a bank?</span>
+            <span class="faq-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></span>
+          </button>
+          <div class="faq-answer-wrap">
+            <div class="faq-answer-inner">
+              <div class="faq-answer">Navy Federal Credit Union is a federally chartered credit union — not a bank. Credit unions are member-owned financial cooperatives, meaning profits go back to members in the form of lower rates, fewer fees, and better services. We are federally insured by the NCUA up to $250,000 per depositor.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">Is Navy Federal secure?</span>
+            <span class="faq-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></span>
+          </button>
+          <div class="faq-answer-wrap">
+            <div class="faq-answer-inner">
+              <div class="faq-answer">Yes. Navy Federal uses military-grade 256-bit encryption for all data in transit and at rest. Your accounts are protected by biometric authentication, real-time fraud monitoring, and instant card freeze controls. All deposits are federally insured by the NCUA up to $250,000.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">How is Navy Federal protecting my money and personal data?</span>
+            <span class="faq-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></span>
+          </button>
+          <div class="faq-answer-wrap">
+            <div class="faq-answer-inner">
+              <div class="faq-answer">We protect your money and data through multiple layers of security: end-to-end encryption, two-factor authentication, real-time transaction alerts, and 24/7 fraud detection. Your personal data is never sold to third parties, and our privacy policy strictly limits how information is shared.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">Does Navy Federal offer an IBAN?</span>
+            <span class="faq-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></span>
+          </button>
+          <div class="faq-answer-wrap">
+            <div class="faq-answer-inner">
+              <div class="faq-answer">Yes. Navy Federal provides unique IBANs (International Bank Account Numbers) to all eligible members. Your IBAN enables you to send and receive international wire transfers seamlessly. You can find your IBAN in the app under Account Details, or by contacting member support.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">What do you need to open a bank account?</span>
+            <span class="faq-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></span>
+          </button>
+          <div class="faq-answer-wrap">
+            <div class="faq-answer-inner">
+              <div class="faq-answer">To open a Navy Federal account you'll need: a valid government-issued photo ID, your Social Security Number (SSN) or Individual Taxpayer Identification Number (ITIN), proof of military affiliation or eligibility, and a minimum opening deposit (which may be waived for eligible members). The entire process takes about 10 minutes in our app.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">How much does it cost to open a bank account?</span>
+            <span class="faq-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></span>
+          </button>
+          <div class="faq-answer-wrap">
+            <div class="faq-answer-inner">
+              <div class="faq-answer">Opening a Navy Federal checking or savings account is completely free. There are no application fees, no monthly maintenance fees, and no minimum balance requirements. Some premium account tiers may have optional paid features, but our standard accounts cost nothing to open or maintain.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">Which bank can I switch from?</span>
+            <span class="faq-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></span>
+          </button>
+          <div class="faq-answer-wrap">
+            <div class="faq-answer-inner">
+              <div class="faq-answer">You can switch to Navy Federal from virtually any bank or financial institution — including Chase, Bank of America, Wells Fargo, Citibank, USAA, and more. Our Switch Kit guides you through transferring your direct deposits, recurring payments, and account balances step by step, with no disruption to your finances.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">What does "risk level of the product" mean?</span>
+            <span class="faq-icon"><svg fill="none" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></span>
+          </button>
+          <div class="faq-answer-wrap">
+            <div class="faq-answer-inner">
+              <div class="faq-answer">Risk level indicates the likelihood that you may lose some or all of the money you invest in a financial product. Savings accounts and checking accounts carry zero investment risk and are NCUA-insured. Investment products like stocks, ETFs, and mutual funds carry varying levels of market risk, and their value can go up or down.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ FLOATING ACTION BUTTON ═══════════════ -->
+  <button class="fab" id="fab" onclick="launchConfetti()">
+    <div class="fab-pulse"></div>
+    Open Free Account
+  </button>
+
+  <!-- ═══════════════ TESTIMONIALS TICKER ═══════════════ -->
+  <div class="testimonial-ticker">
+    <div class="testimonial-ticker-inner">
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-text">"Switching to Navy Federal was the best financial decision I've made. Zero fees, incredible app, and they actually answer the phone!"</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:linear-gradient(135deg,#00857C,#002147)">SG</div>
+          <div><div class="t-name">Sgt. Sarah G.</div><div class="t-role">Active Duty, 8 years</div></div>
+        </div>
+      </div>
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-text">"The VA loan process was seamless. They understood military life and got us into our dream home with a rate nobody else could beat."</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:linear-gradient(135deg,#C9A84C,#8a6d20)">MR</div>
+          <div><div class="t-name">Marcus R.</div><div class="t-role">Navy Veteran</div></div>
+        </div>
+      </div>
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-text">"As a military spouse, I needed banking I could trust while my husband was deployed. Navy Federal never lets me down — 24/7, every single time."</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:linear-gradient(135deg,#004060,#00857C)">JM</div>
+          <div><div class="t-name">Jessica M.</div><div class="t-role">Military Spouse</div></div>
+        </div>
+      </div>
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-text">"My savings account is earning more here than anywhere else. The app is beautiful and I love seeing my money actually grow each month."</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:linear-gradient(135deg,#002147,#003366)">DW</div>
+          <div><div class="t-name">David W.</div><div class="t-role">Air Force, Retired</div></div>
+        </div>
+      </div>
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-text">"Deployed to 3 countries last year. Free ATM withdrawals everywhere, zero foreign fees. Navy Federal traveled with me the whole way."</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:linear-gradient(135deg,#00857C,#005f58)">AT</div>
+          <div><div class="t-name">Cpl. Alex T.</div><div class="t-role">Marines, Active Duty</div></div>
+        </div>
+      </div>
+      <!-- duplicates for seamless scroll -->
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-text">"Switching to Navy Federal was the best financial decision I've made. Zero fees, incredible app, and they actually answer the phone!"</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:linear-gradient(135deg,#00857C,#002147)">SG</div>
+          <div><div class="t-name">Sgt. Sarah G.</div><div class="t-role">Active Duty, 8 years</div></div>
+        </div>
+      </div>
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-text">"The VA loan process was seamless. They understood military life and got us into our dream home with a rate nobody else could beat."</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:linear-gradient(135deg,#C9A84C,#8a6d20)">MR</div>
+          <div><div class="t-name">Marcus R.</div><div class="t-role">Navy Veteran</div></div>
+        </div>
+      </div>
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-text">"As a military spouse, I needed banking I could trust while my husband was deployed. Navy Federal never lets me down — 24/7, every single time."</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:linear-gradient(135deg,#004060,#00857C)">JM</div>
+          <div><div class="t-name">Jessica M.</div><div class="t-role">Military Spouse</div></div>
+        </div>
+      </div>
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-text">"My savings account is earning more here than anywhere else. The app is beautiful and I love seeing my money actually grow each month."</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:linear-gradient(135deg,#002147,#003366)">DW</div>
+          <div><div class="t-name">David W.</div><div class="t-role">Air Force, Retired</div></div>
+        </div>
+      </div>
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-text">"Deployed to 3 countries last year. Free ATM withdrawals everywhere, zero foreign fees. Navy Federal traveled with me the whole way."</p>
+        <div class="t-author">
+          <div class="t-avatar" style="background:linear-gradient(135deg,#00857C,#005f58)">AT</div>
+          <div><div class="t-name">Cpl. Alex T.</div><div class="t-role">Marines, Active Duty</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ CTA SECTION ═══════════════ -->
+  <section class="cta-section">
+    <div class="cta-section-inner reveal">
+      <div class="cta-section-eyebrow">Join 13 Million Members</div>
+      <h2 class="cta-section-title">Ready to love your bank?</h2>
+      <p class="cta-section-desc">Open your free account in minutes. No paperwork, no fees, no catches. Just exceptional banking built for those who serve.</p>
+      <div class="cta-btn-group">
+        <button class="cta-btn-primary" onclick="launchConfetti()">Open Free Account</button>
+        <button class="cta-btn-ghost">Explore Plans</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ BIG FOOTER ═══════════════ -->
+
+  <!-- Link columns -->
+  <footer class="big-footer">
+    <div class="big-footer-inner">
+
+      <!-- Logo col -->
+      <div class="big-footer-logo-col">
+        <a class="big-footer-logo" href="#">
+          <svg class="big-footer-logo-icon" viewBox="0 0 36 36" fill="none">
+            <rect width="36" height="36" rx="8" fill="rgba(0,33,71,0.06)"/>
+            <circle cx="18" cy="10" r="4" stroke="#00857C" stroke-width="2"/>
+            <line x1="18" y1="14" x2="18" y2="30" stroke="#002147" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8 21 Q18 30 28 21" stroke="#002147" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <line x1="10" y1="30" x2="26" y2="30" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div class="big-footer-brand">Navy Federal<span>Credit Union</span></div>
+        </a>
+      </div>
+
+      <!-- Company -->
+      <div>
+        <div class="big-footer-col-title">Company</div>
+        <ul class="big-footer-links">
+          <li><a href="#">About us</a></li>
+          <li><a href="#">Leadership Team</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+          <li><a href="#">Affiliate program</a></li>
+        </ul>
+      </div>
+
+      <!-- Help -->
+      <div>
+        <div class="big-footer-col-title">Help</div>
+        <ul class="big-footer-links">
+          <li><a href="#">Customer Service</a></li>
+          <li><a href="#">File a complaint</a></li>
+          <li><a href="#">Support Center</a></li>
+          <li><a href="#">Sitemap</a></li>
+          <li><a href="#">Ethical Channel</a></li>
+        </ul>
+      </div>
+
+      <!-- Learn -->
+      <div>
+        <div class="big-footer-col-title">Learn</div>
+        <ul class="big-footer-links">
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Banking basics</a></li>
+          <li><a href="#">Trading glossary</a></li>
+          <li><a href="#">Crypto glossary</a></li>
+          <li><a href="#">Taxes hub</a></li>
+          <li><a href="#">Studies and research</a></li>
+        </ul>
+      </div>
+
+      <!-- Money Tools -->
+      <div>
+        <div class="big-footer-col-title">Money Tools</div>
+        <ul class="big-footer-links">
+          <li><a href="#">Financial calculators</a></li>
+          <li><a href="#">Budget calculator</a></li>
+          <li><a href="#">50-30-20 calculator</a></li>
+          <li><a href="#">Interest calculator</a></li>
+          <li><a href="#">Inflation calculator</a></li>
+          <li><a href="#">Moving cost calculator</a></li>
+          <li><a href="#">Festive budget calculator</a></li>
+        </ul>
+      </div>
+
+      <!-- More -->
+      <div>
+        <div class="big-footer-col-title">More</div>
+        <ul class="big-footer-links">
+          <li><a href="register.html">Student bank account</a></li>
+          <li><a href="#">Security</a></li>
+          <li><a href="#">Refer a friend</a></li>
+          <li><a href="#">Expats</a></li>
+          <li><a href="#">International money transfers</a></li>
+        </ul>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- Bottom teal bar -->
+  <div class="big-footer-bar">
+    <div class="big-footer-bar-inner">
+      <span class="big-footer-copy">&copy; Navy Federal Credit Union 2026</span>
+      <div class="big-footer-socials">
+        <!-- Facebook -->
+        <a href="#" aria-label="Facebook">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+        </a>
+        <!-- Instagram -->
+        <a href="#" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </a>
+        <!-- TikTok -->
+        <a href="#" aria-label="TikTok">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.73a8.2 8.2 0 004.79 1.52V6.8a4.85 4.85 0 01-1.02-.11z"/></svg>
+        </a>
+        <!-- LinkedIn -->
+        <a href="#" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+        <!-- YouTube -->
+        <a href="#" aria-label="YouTube">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 00-1.95 1.96A29 29 0 001 12a29 29 0 00.46 5.58A2.78 2.78 0 003.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.95A29 29 0 0023 12a29 29 0 00-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#00857C"/></svg>
+        </a>
+        <!-- App Store apple icon -->
+        <a href="#" aria-label="App Store">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="big-footer-legal-row">
+      <a href="#">Legal Documents</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Cookie Policy</a>
+      <a href="#">Imprint</a>
+      <a href="#">Update cookie settings</a>
+    </div>
+  </div>
+
+</div><!-- /site -->
+
+<script>
+  // ── PRELOADER
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('preloader').classList.add('hide');
+      document.getElementById('site').classList.add('show');
+      startParticles();
+      animateHeroWords();
+    }, 2400);
+  });
+
+  // ── CUSTOM CURSOR
+  const dot = document.getElementById('cursorDot');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animateCursor() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    if (dot) { dot.style.left = mx + 'px'; dot.style.top = my + 'px'; }
+    if (ring) { ring.style.left = rx + 'px'; ring.style.top = ry + 'px'; }
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+
+  // ── STICKY NAV with hide-on-scroll-down
+  let lastY = 0;
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    navbar.classList.toggle('scrolled', y > 40);
+    navbar.classList.toggle('hide-nav', y > lastY + 10 && y > 300);
+    if (y < lastY) navbar.classList.remove('hide-nav');
+    lastY = y;
+    // FAB visibility
+    document.getElementById('fab').classList.toggle('visible', y > 400);
+  });
+
+  // ── HAMBURGER
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      hamburger.classList.remove('open');
+      mobileMenu.classList.remove('open');
+    });
+  });
+
+  // ── FAQ ACCORDION
+  document.querySelectorAll('.faq-trigger').forEach(trigger => {
+    trigger.addEventListener('click', () => {
+      const item = trigger.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => {
+        i.classList.remove('open');
+        i.querySelector('.faq-trigger').setAttribute('aria-expanded', 'false');
+      });
+      if (!isOpen) {
+        item.classList.add('open');
+        trigger.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  // ── INTERSECTION OBSERVER – REVEAL ANIMATIONS
+  const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        revealObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  revealEls.forEach(el => revealObs.observe(el));
+
+  // ── COUNTER ANIMATION
+  function animateCounter(el) {
+    const target = parseFloat(el.dataset.target);
+    const prefix = el.dataset.prefix || '';
+    const suffix = el.dataset.suffix || '';
+    const decimal = parseInt(el.dataset.decimal || '0');
+    const duration = 2000;
+    const start = performance.now();
+    function update(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = target * eased;
+      const display = decimal > 0 ? current.toFixed(decimal) : Math.round(current);
+      el.innerHTML = `${prefix}${display}<span>${suffix}</span>`;
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  }
+  const counterObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting && e.target.dataset.target) {
+        animateCounter(e.target);
+        counterObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.stat-number[data-target]').forEach(el => counterObs.observe(el));
+
+  // ── PARTICLE CANVAS
+  function startParticles() {
+    const canvas = document.getElementById('particle-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resize() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    for (let i = 0; i < 70; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5 + 0.3,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        alpha: Math.random() * 0.5 + 0.1,
+      });
+    }
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,200,190,${p.alpha})`;
+        ctx.fill();
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      });
+      // draw connecting lines
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          if (d < 120) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(0,133,124,${0.12 * (1 - d/120)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+  }
+
+  // ── HERO WORD REVEAL
+  function animateHeroWords() {
+    const title = document.querySelector('.hero-title');
+    if (!title) return;
+    // Title is already rendered, just trigger any word animation via CSS class
+  }
+
+  // ── 3D TILT EFFECT ON FEATURE CARDS
+  document.querySelectorAll('.feature-card, .blog-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      card.style.transform = `translateY(-8px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
+  });
+
+  // ── CONFETTI
+  function launchConfetti() {
+    const canvas = document.getElementById('confetti-canvas');
+    canvas.style.display = 'block';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    const colors = ['#00857C','#C9A84C','#002147','#00A896','#fff','#4ecca3'];
+    const pieces = Array.from({length: 150}, () => ({
+      x: Math.random() * canvas.width,
+      y: -20,
+      w: Math.random() * 10 + 5,
+      h: Math.random() * 5 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 6,
+      vy: Math.random() * 6 + 3,
+      rotation: Math.random() * 360,
+      rotationSpeed: (Math.random() - 0.5) * 10,
+      alpha: 1,
+    }));
+    let frame = 0;
+    function drawConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pieces.forEach(p => {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation * Math.PI / 180);
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+        ctx.restore();
+        p.x += p.vx; p.y += p.vy;
+        p.rotation += p.rotationSpeed;
+        p.vy += 0.15;
+        if (frame > 100) p.alpha -= 0.012;
+      });
+      frame++;
+      if (frame < 220 && pieces.some(p => p.alpha > 0)) {
+        requestAnimationFrame(drawConfetti);
+      } else {
+        canvas.style.display = 'none';
+      }
+    }
+    drawConfetti();
+  }
+
+  // ── MAGNETIC BUTTON EFFECT
+  document.querySelectorAll('.btn-primary, .btn-cta, .cta-btn-primary').forEach(btn => {
+    btn.addEventListener('mousemove', e => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      btn.style.transform = `translateY(-2px) translate(${x * 0.15}px, ${y * 0.15}px)`;
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = '';
+    });
+  });
+
+  // ── SMOOTH HOVER GLOW ON BLOG CARDS
+  document.querySelectorAll('.blog-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      card.style.background = `radial-gradient(circle at ${x}% ${y}%, rgba(0,133,124,0.04) 0%, #fff 50%)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.background = '';
+    });
+  });
+</script>
+
+<!-- Begin of Chaport Live Chat code -->
+<script type="text/javascript">
+(function(w,d,v3){
+w.chaportConfig = {
+  appId : '69e74e87b51a89099604f483',
+};
+
+if(w.chaport)return;v3=w.chaport={};v3._q=[];v3._l={};v3.q=function(){v3._q.push(arguments)};v3.on=function(e,fn){if(!v3._l[e])v3._l[e]=[];v3._l[e].push(fn)};var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://app.chaport.com/javascripts/insert.js';var ss=d.getElementsByTagName('script')[0];ss.parentNode.insertBefore(s,ss)})(window, document);
+</script>
+<!-- End of Chaport Live Chat code -->
+
+</body>
+</html>
