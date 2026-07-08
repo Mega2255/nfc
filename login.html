@@ -714,7 +714,7 @@
   }
 
   // ── TOAST ──
-  function showToast(msg, type='') {
+ function showToast(msg, type='') {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.className = 'toast ' + (type || '');
@@ -723,6 +723,6 @@
     clearTimeout(t._timer);
     t._timer = setTimeout(() => t.classList.remove('show'), duration);
   }
-
+</script>
 </body>
 </html>
